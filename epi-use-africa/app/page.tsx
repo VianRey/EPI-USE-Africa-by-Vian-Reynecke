@@ -1,12 +1,20 @@
+"use client";
+
 import Image from "next/image";
 import { Button } from "@nextui-org/react";
 import { FaUserTie, FaTree, FaSearchPlus } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+  const navigateToEmployeePage = () => {
+    router.push("/employee"); // Replace with the correct path to your employee page
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-8 bg-gradient-to-b from-gray-100 to-white dark:from-gray-900 dark:to-gray-800">
       <header className="w-full py-6 px-4 bg-white dark:bg-gray-800 shadow-md rounded-lg mb-8">
-        <h1 className="text-4xl font-bold text-center bg-clip-text text-transparent bg-white">
+        <h1 className="text-4xl font-bold text-center bg-clip-text text-transparent  bg-gray-800 dark:bg-white">
           Employee Hierarchy Management System
         </h1>
       </header>
@@ -30,7 +38,10 @@ export default function Home() {
           efficiently manage your organization's employee hierarchy. Visualize,
           search, and manage your workforce with ease.
         </p>
-        <Button className="font-bold mt-8 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3  hover:from-blue-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105">
+        <Button
+          className="font-bold mt-8 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3"
+          onClick={navigateToEmployeePage} // Attach the navigation function to the button's onClick
+        >
           Explore System
         </Button>
       </section>
