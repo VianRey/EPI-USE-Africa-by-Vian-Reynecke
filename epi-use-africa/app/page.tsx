@@ -39,7 +39,7 @@ export default function Home() {
           search, and manage your workforce with ease.
         </p>
         <Button
-          className="font-bold mt-8 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3"
+          className="font-bold p-8 text-2xl mt-12 bg-gradient-to-r from-blue-500 to-purple-500 text-white "
           onClick={navigateToEmployeePage} // Attach the navigation function to the button's onClick
         >
           Explore System
@@ -47,7 +47,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="grid text-center lg:grid-cols-3 gap-8 mt-16 w-full max-w-6xl">
+      <section className="grid text-center lg:grid-cols-3 gap-8 mt-12 w-full max-w-6xl">
         {[
           {
             icon: FaUserTie,

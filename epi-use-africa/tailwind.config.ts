@@ -1,3 +1,4 @@
+// tailwind.config.ts
 import type { Config } from "tailwindcss";
 import { nextui } from "@nextui-org/react";
 
@@ -38,6 +39,8 @@ const config: Config = {
       themes: {
         light: {
           colors: {
+            background: "#FFFFFF",
+            foreground: "#1F2937",
             primary: {
               DEFAULT: "#0070F3",
               foreground: "#FFFFFF",
@@ -46,6 +49,8 @@ const config: Config = {
         },
         dark: {
           colors: {
+            background: "#1F2937",
+            foreground: "#FFFFFF",
             primary: {
               DEFAULT: "#0070F3",
               foreground: "#FFFFFF",

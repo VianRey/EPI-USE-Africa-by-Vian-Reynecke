@@ -102,7 +102,6 @@ const RoleSelector: React.FC<RoleSelectorProps> = ({ onRoleSelect }) => {
           ) : (
             <>
               <Select
-                color="primary"
                 items={employees}
                 label="Select an employee"
                 placeholder="Choose an employee"
@@ -110,29 +109,35 @@ const RoleSelector: React.FC<RoleSelectorProps> = ({ onRoleSelect }) => {
                 selectedKeys={selectedEmployee ? [selectedEmployee] : []}
                 onSelectionChange={(keys) => handleSelect(Array.from(keys)[0])}
                 classNames={{
-                  label: "group-data-[filled=true]:-translate-y-5",
-                  trigger: "min-h-16",
+                  label:
+                    "group-data-[filled=true]:-translate-y-5 dark:text-gray-300",
+                  trigger:
+                    "min-h-16 dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 dark:focus:bg-gray-700",
                   listboxWrapper: "max-h-[400px]",
+                  base: "max-w-full",
+                  value: "dark:text-white",
+                  listbox: "dark:bg-gray-800 !important",
                 }}
                 listboxProps={{
                   itemClasses: {
                     base: [
                       "rounded-md",
-                      "text-default-500",
                       "transition-opacity",
-                      "data-[hover=true]:text-foreground",
-                      "data-[hover=true]:bg-default-100",
-                      "dark:data-[hover=true]:bg-default-50",
-                      "data-[selectable=true]:focus:bg-default-50",
+                      "text-gray-800 dark:text-white",
+                      "hover:bg-gray-100 dark:hover:bg-gray-700",
+                      "hover:text-gray-900 dark:hover:text-white",
+                      "data-[selected=true]:bg-gray-200 dark:data-[selected=true]:bg-gray-600",
+                      "data-[selected=true]:text-gray-900 dark:data-[selected=true]:text-white",
+                      "data-[selectable=true]:focus:bg-gray-100 dark:data-[selectable=true]:focus:bg-gray-700",
                       "data-[pressed=true]:opacity-70",
-                      "data-[focus-visible=true]:ring-default-500",
+                      "data-[focus-visible=true]:ring-gray-400 dark:data-[focus-visible=true]:ring-gray-600",
                     ],
                   },
                 }}
                 popoverProps={{
                   classNames: {
                     base: "before:bg-default-200",
-                    content: "p-0 bg-background",
+                    content: "p-0 bg-background dark:bg-gray-800 !important",
                   },
                 }}
                 renderValue={(items) => {
@@ -151,10 +156,10 @@ const RoleSelector: React.FC<RoleSelectorProps> = ({ onRoleSelect }) => {
                         }
                       />
                       <div className="flex flex-col">
-                        <span>{`${item.data?.name ?? ""} ${
-                          item.data?.surname ?? ""
-                        }`}</span>
-                        <span className="text-default-500 text-tiny">
+                        <span className="dark:text-white">{`${
+                          item.data?.name ?? ""
+                        } ${item.data?.surname ?? ""}`}</span>
+                        <span className="text-default-500 text-tiny dark:text-gray-300">
                           {item.data?.role ?? ""}
                         </span>
                       </div>
@@ -166,6 +171,7 @@ const RoleSelector: React.FC<RoleSelectorProps> = ({ onRoleSelect }) => {
                   <SelectItem
                     key={employee.id}
                     textValue={`${employee.name} ${employee.surname}`}
+                    className="dark:hover:bg-gray-700"
                   >
                     <div className="flex gap-2 items-center">
                       <Avatar
@@ -175,8 +181,8 @@ const RoleSelector: React.FC<RoleSelectorProps> = ({ onRoleSelect }) => {
                         src={getGravatarUrl(employee.email)}
                       />
                       <div className="flex flex-col">
-                        <span className="text-small">{`${employee.name} ${employee.surname}`}</span>
-                        <span className="text-tiny text-default-400">
+                        <span className="text-small dark:text-white">{`${employee.name} ${employee.surname}`}</span>
+                        <span className="text-tiny text-default-400 dark:text-gray-300">
                           {employee.role}
                         </span>
                       </div>
@@ -190,8 +196,8 @@ const RoleSelector: React.FC<RoleSelectorProps> = ({ onRoleSelect }) => {
                 disabled={!selectedEmployee}
               >
                 Enter System
-              </Button>{" "}
-              <div className=" flex justify-end mb-4 mt-4">
+              </Button>
+              <div className="flex justify-end mb-4 mt-4">
                 <Button
                   color="secondary"
                   variant="flat"
