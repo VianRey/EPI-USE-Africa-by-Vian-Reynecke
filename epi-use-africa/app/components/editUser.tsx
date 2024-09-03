@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Modal,
   ModalContent,
@@ -67,7 +67,9 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
       }
       let data: Employee[] = await response.json();
       data.sort((a, b) => a.role.localeCompare(b.role));
+      console.log("SETTING EMPLOYEE: " + data);
       setEmployees(data);
+      console.log(employees);
     } catch (error) {
       console.error("Failed to fetch employees:", error);
       setError("Failed to fetch employees. Please try again later.");
@@ -135,9 +137,12 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
 
   const handleManagerChange = useCallback(
     (managerId: string | null) => {
-      handleInputChange("reporting_line_manager", managerId);
+      if (editedEmployee?.reporting_line_manager !== managerId) {
+        console.log("Changing manager to: ", managerId);
+        handleInputChange("reporting_line_manager", managerId);
+      }
     },
-    [handleInputChange]
+    [handleInputChange, editedEmployee]
   );
 
   if (!editedEmployee) {

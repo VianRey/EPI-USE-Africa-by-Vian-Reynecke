@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Select, SelectItem, Avatar } from "@nextui-org/react";
 import md5 from "md5";
-import { Employee } from "../components/editUser"; // Import the Employee interface
+import { Employee } from "../components/editUser";
 
 interface ReportingLineManagerProps {
   label: string;
-  placeholder: string;
-  onSelectionChange: (manager: string | null) => void;
+  onSelectionChange: (managerRole: string | null) => void;
   initialSelection?: string | null;
   disabled?: boolean;
   employees: Employee[];
@@ -14,53 +13,75 @@ interface ReportingLineManagerProps {
 
 const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
   label,
-  placeholder,
   onSelectionChange,
   initialSelection = null,
   disabled = false,
   employees,
 }) => {
-  const [selectedManager, setSelectedManager] = useState<string | null>(null);
+  const [selectedManagerRole, setSelectedManagerRole] = useState<string | null>(
+    initialSelection
+  );
 
   useEffect(() => {
-    if (employees.length > 0 && initialSelection !== null) {
+    if (initialSelection !== null && employees.length > 0) {
       const matchingEmployee = employees.find(
-        (employee) =>
-          employee.id === initialSelection || employee.role === initialSelection
+        (employee) => employee.role === initialSelection
       );
       if (matchingEmployee) {
-        setSelectedManager(matchingEmployee.id);
-        onSelectionChange(matchingEmployee.id);
+        setSelectedManagerRole(matchingEmployee.role);
       } else {
-        setSelectedManager(null);
-        onSelectionChange(null);
+        setSelectedManagerRole(null);
       }
     }
-  }, [employees, initialSelection, onSelectionChange]);
+  }, [employees, initialSelection]);
 
   const handleSelect = (value: React.Key) => {
     const selectedValue = value.toString();
-    setSelectedManager(selectedValue);
+    setSelectedManagerRole(selectedValue);
     onSelectionChange(selectedValue);
   };
 
-  const getGravatarUrl = useMemo(
-    () => (email: string) => {
-      const hash = md5(email.toLowerCase().trim());
-      return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
-    },
-    []
+  const getGravatarUrl = (email: string) => {
+    const hash = md5(email.toLowerCase().trim());
+    return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
+  };
+
+  const selectedEmployee = employees.find(
+    (emp) => emp.role === selectedManagerRole
   );
+
+  const renderSelectedValue = () => {
+    if (!selectedEmployee) return label;
+    return (
+      <div className="flex gap-2 items-center">
+        <Avatar
+          alt={`${selectedEmployee.name} ${selectedEmployee.surname}`}
+          className="flex-shrink-0"
+          size="sm"
+          src={getGravatarUrl(selectedEmployee.email)}
+        />
+        <div className="flex flex-col">
+          <span className="text-small">{`${selectedEmployee.name} ${selectedEmployee.surname}`}</span>
+          <span className="text-tiny text-default-400">
+            {selectedEmployee.role}
+          </span>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Select
       variant="faded"
       items={employees}
       label={label}
-      placeholder={placeholder}
       isDisabled={disabled}
       classNames={{
+        base: "w-full",
         trigger: [
+          "min-h-unit-12",
+          "h-auto",
+          "py-2",
           "bg-transparent",
           "text-gray-800 dark:text-white",
           "shadow-xl",
@@ -76,10 +97,7 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
         innerWrapper: "bg-transparent !important",
         selectorIcon: "text-gray-500 dark:text-gray-400",
         value: "text-gray-800 dark:text-white",
-        label: [
-          "text-gray-500 dark:text-gray-400",
-          "group-data-[focused=true]:text-red-500 !important",
-        ],
+        label: "group-data-[filled=true]:-translate-y-5",
       }}
       listboxProps={{
         itemClasses: {
@@ -92,8 +110,6 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
             "data-[selected=true]:bg-gray-200 dark:data-[selected=true]:bg-gray-600",
             "data-[selected=true]:text-gray-900 dark:data-[selected=true]:text-white",
             "data-[selectable=true]:focus:bg-gray-100 dark:data-[selectable=true]:focus:bg-gray-700",
-            "data-[pressed=true]:opacity-70",
-            "data-[focus-visible=true]:ring-gray-400 dark:data-[focus-visible=true]:ring-gray-600",
           ],
         },
       }}
@@ -104,18 +120,20 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
         },
       }}
       selectedKeys={
-        selectedManager !== null
-          ? new Set([selectedManager.toString()])
+        selectedManagerRole !== null
+          ? new Set([selectedManagerRole.toString()])
           : new Set()
       }
       onSelectionChange={(keys) => handleSelect(Array.from(keys)[0])}
+      renderValue={renderSelectedValue}
     >
       {(employee) => (
         <SelectItem
-          key={employee.id.toString()}
+          key={employee.role}
           textValue={`${employee.name} ${employee.surname}`}
+          className=""
         >
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center py-2 ">
             <Avatar
               alt={`${employee.name} ${employee.surname}`}
               className="flex-shrink-0"

@@ -36,42 +36,55 @@ interface Employee {
   reporting_line_manager: string | null;
 }
 
+interface Role {
+  role: string;
+}
+
 export default function App() {
   const menuItems = ["Home", "Hierarchy", "About Us"];
 
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchEmployees = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(
-          "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
-          {
+        const [employeesResponse, rolesResponse] = await Promise.all([
+          fetch("https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ type: "getEmployees" }),
-          }
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          }),
+          fetch("https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "getRole" }),
+          }),
+        ]);
+
+        if (!employeesResponse.ok || !rolesResponse.ok) {
+          throw new Error(
+            `HTTP error! status: ${employeesResponse.status} ${rolesResponse.status}`
+          );
         }
-        const data = await response.json();
-        setEmployees(data);
+
+        const employeesData = await employeesResponse.json();
+        const rolesData = await rolesResponse.json();
+
+        setEmployees(employeesData);
+        setRoles(rolesData);
       } catch (error) {
-        console.error("Failed to fetch employees:", error);
+        console.error("Failed to fetch data:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchEmployees();
+    fetchData();
   }, []);
-
   const flattenHierarchy = useCallback(
     (employees: Employee[], managerRole: string | null = null): Employee[] => {
       let flatEmployees: Employee[] = [];
@@ -159,6 +172,7 @@ export default function App() {
               <RoleDropdown
                 label="Role"
                 placeholder="Select a role"
+                value={newEmployee.role}
                 onChange={(role) => handleInputChange("role", role)}
                 roles={roles}
               />
@@ -178,7 +192,6 @@ export default function App() {
             />
             <ReportingLineManager
               label="Reporting Line Manager"
-              placeholder="Select a manager"
               onSelectionChange={handleManagerChange}
               initialSelection={newEmployee.reporting_line_manager}
               employees={employees}
