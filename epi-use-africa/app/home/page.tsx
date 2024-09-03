@@ -37,9 +37,10 @@ interface Employee {
 }
 
 export default function App() {
+  const menuItems = ["Home", "Hierarchy", "About Us"];
+
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuItems = ["Home", "Hierarchy", "About Us"];
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -66,6 +67,26 @@ export default function App() {
 
     fetchEmployees();
   }, []);
+
+  const flattenHierarchy = (
+    employees: Employee[],
+    managerRole: string | null = null
+  ): Employee[] => {
+    let flatEmployees: Employee[] = [];
+
+    const addEmployeeWithDescendants = (employee: Employee) => {
+      flatEmployees.push(employee);
+      employees
+        .filter((emp) => emp.reporting_line_manager === employee.role)
+        .forEach(addEmployeeWithDescendants);
+    };
+
+    employees
+      .filter((emp) => emp.reporting_line_manager === managerRole)
+      .forEach(addEmployeeWithDescendants);
+
+    return flatEmployees;
+  };
 
   const CreateSection = () => (
     <Card className="w-full dark:bg-gray-800 bg-white shadow-md rounded-xl">
@@ -119,11 +140,6 @@ export default function App() {
           />
         </form>
       </CardBody>
-      <CardFooter>
-        <Button color="primary" className="w-full">
-          Create User
-        </Button>
-      </CardFooter>
     </Card>
   );
 
@@ -134,7 +150,11 @@ export default function App() {
     );
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-    const filteredEmployees = employees.filter((employee) =>
+    // Flatten the hierarchy for comprehensive searching
+    const flatEmployees = flattenHierarchy(employees);
+
+    // Apply the search on the flattened list
+    const filteredEmployees = flatEmployees.filter((employee) =>
       `${employee.name} ${employee.surname} ${employee.role}`
         .toLowerCase()
         .includes(searchTerm.toLowerCase())
@@ -147,17 +167,13 @@ export default function App() {
     };
 
     const handleUpdateUser = (updatedEmployee: Employee) => {
-      // Implement update logic here
       console.log("Updating employee:", updatedEmployee);
       setIsEditModalOpen(false);
-      // You should update the employees state here
     };
 
     const handleDeleteUser = (employeeId: string) => {
-      // Implement delete logic here
       console.log("Deleting employee:", employeeId);
       setIsEditModalOpen(false);
-      // You should update the employees state here
     };
 
     return (

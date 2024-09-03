@@ -82,7 +82,6 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
     onSelectionChange(selectedValue);
   };
 
-  if (loading) return <p>Loading managers...</p>;
   if (error) return <p>{error}</p>;
 
   return (

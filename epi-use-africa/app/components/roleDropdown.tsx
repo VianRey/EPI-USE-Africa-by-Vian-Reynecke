@@ -73,7 +73,6 @@ const RoleDropdown: React.FC<RoleDropdownProps> = ({
     onSelectionChange(selectedValue);
   };
 
-  if (loading) return <p>Loading roles...</p>;
   if (error) return <p>{error}</p>;
 
   return (

@@ -6,7 +6,7 @@ import {
   ModalBody,
   ModalFooter,
   Button,
-  useDisclosure,
+  Skeleton,
 } from "@nextui-org/react";
 import CustomInput from "../components/inputCustom";
 import RoleDropdown from "../components/roleDropdown";
@@ -37,10 +37,15 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   onDelete,
 }) => {
   const [editedEmployee, setEditedEmployee] = useState<Employee | null>(null);
+  const [isLoadingRoles, setIsLoadingRoles] = useState(true);
+  const [isLoadingManagers, setIsLoadingManagers] = useState(true);
 
   useEffect(() => {
     if (employee) {
       setEditedEmployee({ ...employee });
+      // Simulate loading for roles and managers
+      setTimeout(() => setIsLoadingRoles(false), 1000); // Simulate 1 second loading time
+      setTimeout(() => setIsLoadingManagers(false), 1200); // Simulate 1.2 second loading time
     }
   }, [employee]);
 
@@ -92,28 +97,70 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                     }
                     className="mb-2"
                   />
-                  <RoleDropdown
-                    label="Role"
-                    placeholder="Select a role"
-                    onSelectionChange={(role) =>
-                      setEditedEmployee({
-                        ...editedEmployee,
-                        role: role,
-                      })
-                    }
-                    initialSelection={editedEmployee.role}
-                  />
-                  <ReportingLineManager
-                    label="Reporting Line Manager"
-                    placeholder="Select a manager"
-                    onSelectionChange={(manager) =>
-                      setEditedEmployee({
-                        ...editedEmployee,
-                        reporting_line_manager: manager || null,
-                      })
-                    }
-                    initialSelection={editedEmployee.reporting_line_manager}
-                  />
+
+                  {/* Role Dropdown with Skeleton */}
+                  {isLoadingRoles ? (
+                    <Skeleton
+                      className="
+                        relative 
+                        w-full 
+                        h-14 
+                        rounded-medium 
+                        bg-transparent 
+                        dark:bg-gray-900 
+                        dark:border-gray-100 
+                        px-3 
+                        py-2 
+                        text-gray-800 
+                        dark:text-white 
+                        shadow-xl
+                    "
+                    />
+                  ) : (
+                    <RoleDropdown
+                      label="Role"
+                      placeholder="Select a role"
+                      onSelectionChange={(role) =>
+                        setEditedEmployee({
+                          ...editedEmployee,
+                          role: role,
+                        })
+                      }
+                      initialSelection={editedEmployee.role}
+                    />
+                  )}
+
+                  {/* Reporting Line Manager with Skeleton */}
+                  {isLoadingManagers ? (
+                    <Skeleton
+                      className="
+                        relative 
+                        w-full 
+                        h-14 
+                        rounded-medium 
+                        bg-transparent 
+                        dark:bg-gray-900 
+                        dark:border-gray-100 
+                        px-3 
+                        py-2 
+                        text-gray-800 
+                        dark:text-white 
+                        shadow-xl
+                    "
+                    />
+                  ) : (
+                    <ReportingLineManager
+                      label="Reporting Line Manager"
+                      placeholder="Select a manager"
+                      onSelectionChange={(manager) =>
+                        setEditedEmployee({
+                          ...editedEmployee,
+                          reporting_line_manager: manager || null,
+                        })
+                      }
+                      initialSelection={editedEmployee.reporting_line_manager}
+                    />
+                  )}
                 </>
               ) : (
                 <p>Loading employee data...</p>

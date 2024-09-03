@@ -31,6 +31,7 @@ const EmployeeHierarchy: React.FC<EmployeeHierarchyProps> = ({
   onEditUser,
   expandedByDefault,
 }) => {
+  const [searchTerm, setSearchTerm] = useState(""); // Added searchTerm state
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
@@ -87,19 +88,64 @@ const EmployeeHierarchy: React.FC<EmployeeHierarchyProps> = ({
     </div>
   );
 
+  const filteredEmployees = employees.filter((employee) =>
+    `${employee.name} ${employee.surname} ${employee.role}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
+  const relatedEmployees = new Set<string>();
+  filteredEmployees.forEach((emp) => {
+    relatedEmployees.add(emp.id);
+    // Add parents
+    let manager = employees.find((e) => e.role === emp.reporting_line_manager);
+    while (manager) {
+      relatedEmployees.add(manager.id);
+      // Check if manager is defined before accessing its properties
+      const nextManagerRole = manager.reporting_line_manager;
+      if (!nextManagerRole) break;
+      manager = employees.find((e) => e.role === nextManagerRole);
+    }
+    // Add children
+    const addChildren = (parentId: string) => {
+      const children = employees.filter(
+        (e) => e.reporting_line_manager === parentId
+      );
+      children.forEach((child) => {
+        relatedEmployees.add(child.id);
+        addChildren(child.role);
+      });
+    };
+    addChildren(emp.role);
+  });
   const buildHierarchy = (
     employees: Employee[],
     managerRole: string | null = null
   ): HierarchyNode[] => {
     return employees
       .filter((emp) => emp.reporting_line_manager === managerRole)
-      .sort((a, b) => a.role.localeCompare(b.role))
-      .map((emp) => ({
-        label: renderEmployeeNode(emp),
-        children: buildHierarchy(employees, emp.role),
-        employee: emp,
-      }));
+      .map((emp) => {
+        const children = buildHierarchy(employees, emp.role);
+
+        // Check if this employee matches the search term or if any of their children do
+        const matchesSearchTerm =
+          `${emp.name} ${emp.surname} ${emp.role}`
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) || children.length > 0;
+
+        if (matchesSearchTerm) {
+          return {
+            label: renderEmployeeNode(emp),
+            children,
+            employee: emp,
+          };
+        }
+        return null;
+      })
+      .filter((node) => node !== null) as HierarchyNode[];
   };
+  const filteredHierarchy = buildHierarchy(
+    employees.filter((emp) => relatedEmployees.has(emp.id))
+  );
 
   const renderTreeNodes = (nodes: HierarchyNode[]): React.ReactNode => {
     return nodes.map((node) => (
@@ -108,16 +154,6 @@ const EmployeeHierarchy: React.FC<EmployeeHierarchyProps> = ({
       </TreeNode>
     ));
   };
-
-  const rootEmployees = employees.filter(
-    (emp) => emp.reporting_line_manager === null
-  );
-
-  const hierarchy = rootEmployees.map((rootEmployee) => ({
-    label: renderEmployeeNode(rootEmployee),
-    children: buildHierarchy(employees, rootEmployee.role),
-    employee: rootEmployee,
-  }));
 
   return (
     <>
@@ -133,7 +169,7 @@ const EmployeeHierarchy: React.FC<EmployeeHierarchyProps> = ({
               </div>
             }
           >
-            {renderTreeNodes(hierarchy)}
+            {renderTreeNodes(filteredHierarchy)}
           </Tree>
         </div>
       </div>
