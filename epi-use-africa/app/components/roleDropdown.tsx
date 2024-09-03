@@ -11,6 +11,8 @@ interface RoleDropdownProps {
   value: string;
   onChange: (role: string) => void;
   roles: Role[];
+  errorMessage?: string;
+  className?: string; // Add this line
 }
 
 const RoleDropdown: React.FC<RoleDropdownProps> = ({
@@ -19,6 +21,8 @@ const RoleDropdown: React.FC<RoleDropdownProps> = ({
   value,
   onChange,
   roles,
+  errorMessage,
+  className, // Add this line
 }) => {
   const handleSelectionChange = (keys: any) => {
     const selectedValue = Array.from(keys)[0] as string;

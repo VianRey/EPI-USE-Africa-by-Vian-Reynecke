@@ -71,6 +71,23 @@ Deno.serve(async (req) => {
 
       console.log("Fetched reporting line managers:", managers);
       data = managers;
+    } else if (type === "checkEmailExists") {
+      console.log("Checking if email exists...");
+      const { email } = payload;
+
+      const { data: existingEmployee, error } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("email", email)
+        .single();
+
+      if (error && error.code !== "PGRST116") {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+
+      data = { exists: !!existingEmployee };
+      console.log(`Email ${email} exists: ${data.exists}`);
     } else if (type === "createEmployee") {
       console.log("Creating a new employee...");
 

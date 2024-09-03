@@ -135,8 +135,71 @@ export default function App() {
       reporting_line_manager: null,
     });
 
+    const [errors, setErrors] = useState({
+      name: "",
+      surname: "",
+      birthDate: "",
+      email: "",
+      role: "",
+      salary: "",
+      reporting_line_manager: "",
+    });
+
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const validateInputs = () => {
+      const newErrors = {
+        name: "",
+        surname: "",
+        birthDate: "",
+        email: "",
+        role: "",
+        salary: "",
+        reporting_line_manager: "",
+      };
+
+      let isValid = true;
+
+      if (!newEmployee.name.trim()) {
+        newErrors.name = "Name is required";
+        isValid = false;
+      }
+      if (!newEmployee.surname.trim()) {
+        newErrors.surname = "Surname is required";
+        isValid = false;
+      }
+      if (!newEmployee.birthDate.trim()) {
+        newErrors.birthDate = "Birth Date is required";
+        isValid = false;
+      }
+      if (!newEmployee.email.trim()) {
+        newErrors.email = "Email is required";
+        isValid = false;
+      } else if (!/\S+@\S+\.\S+/.test(newEmployee.email)) {
+        newErrors.email = "Email is invalid";
+        isValid = false;
+      }
+      if (!newEmployee.role.trim()) {
+        newErrors.role = "Role is required";
+        isValid = false;
+      }
+      if (!newEmployee.salary.trim()) {
+        newErrors.salary = "Salary is required";
+        isValid = false;
+      }
+      if (newEmployee.role !== "CEO" && !newEmployee.reporting_line_manager) {
+        newErrors.reporting_line_manager = "Reporting Line Manager is required";
+        isValid = false;
+      }
+
+      setErrors(newErrors);
+      return isValid;
+    };
+
     const handleInputChange = (field: string, value: string | null) => {
       setNewEmployee((prev) => ({ ...prev, [field]: value }));
+      // Clear the error for this field when the user starts typing
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     };
 
     const handleManagerChange = (managerId: string | null) => {
@@ -144,8 +207,43 @@ export default function App() {
     };
 
     const handleCreateEmployee = async () => {
+      if (!validateInputs()) {
+        return;
+      }
+
+      setIsSubmitting(true);
+
       try {
-        const response = await fetch(
+        // First, check if the email already exists
+        const checkEmailResponse = await fetch(
+          "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "checkEmailExists",
+              payload: { email: newEmployee.email },
+            }),
+          }
+        );
+
+        if (!checkEmailResponse.ok) {
+          throw new Error("Failed to check email existence");
+        }
+
+        const { exists } = await checkEmailResponse.json();
+
+        if (exists) {
+          setErrors((prev) => ({
+            ...prev,
+            email: "This email already exists",
+          }));
+          setIsSubmitting(false);
+          return;
+        }
+
+        // If email doesn't exist, proceed with creating the employee
+        const createResponse = await fetch(
           "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
           {
             method: "POST",
@@ -157,14 +255,14 @@ export default function App() {
           }
         );
 
-        if (!response.ok) {
-          throw new Error("Failed to create new employee: ");
+        if (!createResponse.ok) {
+          throw new Error("Failed to create new employee");
         }
 
-        const result = await response.json();
+        const result = await createResponse.json();
         console.log("Employee created successfully:", result);
 
-        // Optionally reset the form after a successful creation
+        // Reset the form after a successful creation
         setNewEmployee({
           name: "",
           surname: "",
@@ -174,8 +272,22 @@ export default function App() {
           salary: "",
           reporting_line_manager: null,
         });
+        setErrors({
+          name: "",
+          surname: "",
+          birthDate: "",
+          email: "",
+          role: "",
+          salary: "",
+          reporting_line_manager: "",
+        });
+
+        // TODO: Add a success message or notification here
       } catch (error) {
         console.error("Error creating employee:", error);
+        // TODO: Add a general error message here
+      } finally {
+        setIsSubmitting(false);
       }
     };
 
@@ -196,36 +308,44 @@ export default function App() {
         <CardBody className="dark:text-gray-300 text-gray-700">
           <form className="w-full">
             <CustomInput
+              required
               type="text"
               label="First Name"
               placeholder="Enter name"
               value={newEmployee.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
+              errorMessage={errors.name}
             />
             <CustomInput
+              required
               type="text"
               label="Surname"
               placeholder="Enter surname"
               value={newEmployee.surname}
               onChange={(e) => handleInputChange("surname", e.target.value)}
+              errorMessage={errors.surname}
             />
             <CustomInput
+              required
               type="date"
               label="Birth Date"
               placeholder="Enter DOB"
               value={newEmployee.birthDate}
               onChange={(e) => handleInputChange("birthDate", e.target.value)}
+              errorMessage={errors.birthDate}
             />
             <CustomInput
+              required
               label="Email"
               type="email"
               placeholder="Enter email"
               value={newEmployee.email}
               onChange={(e) => handleInputChange("email", e.target.value)}
-            />{" "}
+              errorMessage={errors.email}
+            />
             <CustomInput
+              required
               type="number"
-              className="mb-2"
               label="Salary"
               placeholder="Enter salary"
               value={newEmployee.salary}
@@ -235,11 +355,11 @@ export default function App() {
                   <span className="text-default-400 text-small">R</span>
                 </div>
               }
+              errorMessage={errors.salary}
             />
-            <div className="w-full">
-              {" "}
+            <div className="w-full mb-2">
               {isLoading ? (
-                <Skeleton className="w-full  mb-2  h-14 bg-white dark:bg-gray-900  relative inline-flex tap-highlight-transparent px-3 border-medium data-[hover=true]:border-default-400 min-h-10 rounded-medium flex-col items-start justify-center gap-0  !duration-150 transition-colors motion-reduce:transition-none outline-none group-data-[focus-visible=true]:z-10 group-data-[focus-visible=true]:ring-2 group-data-[focus-visible=true]:ring-focus group-data-[focus-visible=true]:ring-offset-2  cursor-text border-gray-300 dark:border-gray-600 " />
+                <Skeleton className="w-full mb-4 h-14 bg-white dark:bg-gray-900 rounded-xl cursor-text border-2 border-gray-300 dark:border-gray-600" />
               ) : (
                 <RoleDropdown
                   label="Role"
@@ -247,17 +367,23 @@ export default function App() {
                   value={newEmployee.role}
                   onChange={(role) => handleInputChange("role", role)}
                   roles={roles}
+                  errorMessage={errors.role}
                 />
               )}
             </div>
             {isLoading ? (
-              <Skeleton className="w-full  mb-2  h-14 bg-white dark:bg-gray-900  relative inline-flex tap-highlight-transparent px-3 border-medium data-[hover=true]:border-default-400 min-h-10 rounded-medium flex-col items-start justify-center gap-0  !duration-150 transition-colors motion-reduce:transition-none outline-none group-data-[focus-visible=true]:z-10 group-data-[focus-visible=true]:ring-2 group-data-[focus-visible=true]:ring-focus group-data-[focus-visible=true]:ring-offset-2  cursor-text border-gray-300 dark:border-gray-600 " />
+              <Skeleton className="w-full mb-2 h-14 bg-white dark:bg-gray-900 rounded-xl cursor-text border-2 border-gray-300 dark:border-gray-600" />
             ) : (
               <ReportingLineManager
                 label="Reporting Line Manager"
                 onSelectionChange={handleManagerChange}
                 initialSelection={newEmployee.reporting_line_manager}
                 employees={employees}
+                errorMessage={
+                  newEmployee.role !== "CEO"
+                    ? errors.reporting_line_manager
+                    : ""
+                }
               />
             )}
           </form>
@@ -265,7 +391,7 @@ export default function App() {
             color="primary"
             className="mt-4 p-6"
             onClick={handleCreateEmployee}
-            isLoading={isLoading} // Optionally disable the button while loading
+            isLoading={isSubmitting}
           >
             Create New Employee Profile
           </Button>
