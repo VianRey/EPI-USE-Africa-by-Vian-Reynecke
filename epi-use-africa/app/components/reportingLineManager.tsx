@@ -10,7 +10,6 @@ interface ReportingLineManagerProps {
   disabled?: boolean;
   employees: Employee[];
   errorMessage?: string;
-  style?: React.CSSProperties; // Add this line
 }
 
 const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
@@ -19,7 +18,7 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
   initialSelection = null,
   disabled = false,
   employees,
-  errorMessage, // Added this line
+  errorMessage,
 }) => {
   const [selectedManagerRole, setSelectedManagerRole] = useState<string | null>(
     initialSelection
@@ -74,14 +73,16 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
   };
 
   return (
-    <div className={`w-full ${errorMessage ? "border-red-500" : ""}`}>
+    <div className="w-full">
       <Select
         variant="faded"
         items={employees}
         label={label}
         isDisabled={disabled}
+        isInvalid={!!errorMessage}
+        errorMessage={errorMessage}
         classNames={{
-          base: `w-full ${errorMessage ? "border-red-500" : ""}`, // Apply error border
+          base: "w-full",
           trigger: [
             "min-h-unit-12",
             "h-auto",
@@ -97,12 +98,16 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
             "cursor-pointer",
             "border-gray-300 dark:border-gray-600",
             "dark:bg-gray-900",
-            errorMessage && "border-red-500", // Apply error border
+            errorMessage ? "border-red-500" : "",
           ],
           innerWrapper: "bg-transparent !important",
           selectorIcon: "text-gray-500 dark:text-gray-400",
           value: "text-gray-800 dark:text-white",
-          label: "group-data-[filled=true]:-translate-y-5",
+          label: [
+            "text-gray-500 dark:text-gray-400",
+            "group-data-[focused=true]:text-red-500 !important",
+          ],
+          errorMessage: "text-red-500 text-sm mt-1",
         }}
         listboxProps={{
           itemClasses: {
@@ -154,9 +159,6 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
           </SelectItem>
         )}
       </Select>
-      {errorMessage && (
-        <div className="text-red-500 text-xs mt-2">{errorMessage}</div>
-      )}
     </div>
   );
 };

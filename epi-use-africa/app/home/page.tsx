@@ -179,7 +179,9 @@ export default function App() {
         newErrors.email = "Email is invalid";
         isValid = false;
       }
-      if (!newEmployee.role.trim()) {
+      if (!newEmployee.role) {
+        // Changed from newEmployee.role == "" to !newEmployee.role
+        console.log("HELLO ", newEmployee.role);
         newErrors.role = "Role is required";
         isValid = false;
       }
@@ -367,7 +369,7 @@ export default function App() {
                   value={newEmployee.role}
                   onChange={(role) => handleInputChange("role", role)}
                   roles={roles}
-                  errorMessage={errors.role}
+                  errorMessage={errors.role} // Make sure this prop is correctly passed and handled in RoleDropdown
                 />
               )}
             </div>
