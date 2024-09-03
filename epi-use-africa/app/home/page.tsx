@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
+import { toast } from "react-hot-toast";
 
 import {
   Skeleton,
@@ -467,11 +468,7 @@ export default function App() {
 
         if (!response.ok) {
           if (response.status === 400 && result.error) {
-            // Handle the case where update is not allowed
-            alert(
-              result.error +
-                ` ${result.dependentCount} employee(s) are still reporting to this role.`
-            );
+            toast.success("POEF");
             return;
           }
           throw new Error("Failed to update employee");
@@ -485,13 +482,12 @@ export default function App() {
             emp.id === updatedEmployee.id ? result : emp
           )
         );
+        toast.success("POEF");
 
         setIsEditModalOpen(false);
       } catch (error) {
         console.error("Error updating employee:", error);
-        alert(
-          "An error occurred while trying to update the employee. Please try again."
-        );
+        toast.success("POEF");
       }
     };
 
@@ -513,11 +509,8 @@ export default function App() {
 
         if (!response.ok) {
           if (response.status === 400 && result.error) {
-            // Handle the case where deletion is not allowed
-            alert(
-              result.error +
-                ` ${result.dependentCount} employee(s) are still reporting to this role.`
-            );
+            toast.success("POEF");
+
             return;
           }
           throw new Error("Failed to delete employee");
@@ -529,13 +522,11 @@ export default function App() {
         setEmployees((prevEmployees) =>
           prevEmployees.filter((emp) => emp.id !== employeeId)
         );
+        toast.success("POEF");
 
         setIsEditModalOpen(false);
       } catch (error) {
-        console.error("Error deleting employee:", error);
-        alert(
-          "An error occurred while trying to delete the employee. Please try again."
-        );
+        toast.success("POEF");
       }
     };
 
