@@ -133,45 +133,137 @@ Deno.serve(async (req) => {
       console.log("Created employee:", employee);
       data = employee;
     } else if (type === "updateEmployee") {
-      console.log("Updating an employee...");
+      console.log("Attempting to update an employee...");
       const { id, ...updates } = payload;
 
-      const { data: employee, error } = await supabase
+      // First, get the current role of the employee we're trying to update
+      const { data: currentEmployee, error: fetchError } = await supabase
+        .from("employees")
+        .select("role")
+        .eq("id", id)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching employee to update:", fetchError);
+        throw fetchError;
+      }
+
+      // If the role is being updated, check for dependencies
+      if (updates.role && updates.role !== currentEmployee.role) {
+        // Check if any employees are reporting to the current role
+        const { data: dependentEmployees, error: dependencyError } =
+          await supabase
+            .from("employees")
+            .select("id")
+            .eq("reporting_line_manager", currentEmployee.role);
+
+        if (dependencyError) {
+          console.error(
+            "Error checking for dependent employees:",
+            dependencyError,
+          );
+          throw dependencyError;
+        }
+
+        if (dependentEmployees && dependentEmployees.length > 0) {
+          console.log("Cannot update: Employees are reporting to this role");
+          return new Response(
+            JSON.stringify({
+              error:
+                "Cannot update employee role. There are still employees reporting to the current role.",
+              dependentCount: dependentEmployees.length,
+            }),
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+              },
+            },
+          );
+        }
+      }
+
+      // If no dependents or role is not being updated, proceed with the update
+      const { data: updatedEmployee, error: updateError } = await supabase
         .from("employees")
         .update(updates)
         .eq("id", id)
         .select("*")
         .single();
 
-      if (error) {
-        console.error("Supabase error:", error);
-        throw error;
+      if (updateError) {
+        console.error("Error updating employee:", updateError);
+        throw updateError;
       }
 
-      console.log("Updated employee:", employee);
-      data = employee;
+      console.log("Updated employee:", updatedEmployee);
+      data = updatedEmployee;
     } else if (type === "deleteEmployee") {
-      console.log("Deleting an employee...");
+      console.log("Attempting to delete an employee...");
       const { id } = payload;
 
-      const { data: employee, error } = await supabase
+      // First, get the role of the employee we're trying to delete
+      const { data: employeeToDelete, error: fetchError } = await supabase
+        .from("employees")
+        .select("role")
+        .eq("id", id)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching employee to delete:", fetchError);
+        throw fetchError;
+      }
+
+      // Check if any employees are reporting to this role
+      const { data: dependentEmployees, error: dependencyError } =
+        await supabase
+          .from("employees")
+          .select("id")
+          .eq("reporting_line_manager", employeeToDelete.role);
+
+      if (dependencyError) {
+        console.error(
+          "Error checking for dependent employees:",
+          dependencyError,
+        );
+        throw dependencyError;
+      }
+
+      if (dependentEmployees && dependentEmployees.length > 0) {
+        console.log("Cannot delete: Employees are reporting to this role");
+        return new Response(
+          JSON.stringify({
+            error:
+              "Cannot delete employee. There are still employees reporting to this role.",
+            dependentCount: dependentEmployees.length,
+          }),
+          {
+            status: 400,
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+            },
+          },
+        );
+      }
+
+      // If no dependents, proceed with deletion
+      const { data: deletedEmployee, error: deleteError } = await supabase
         .from("employees")
         .delete()
         .eq("id", id)
         .select("*")
         .single();
 
-      if (error) {
-        console.error("Supabase error:", error);
-        throw error;
+      if (deleteError) {
+        console.error("Error deleting employee:", deleteError);
+        throw deleteError;
       }
 
-      console.log("Deleted employee:", employee);
-      data = employee;
-    } else {
-      throw new Error("Invalid request type");
+      console.log("Deleted employee:", deletedEmployee);
+      data = deletedEmployee;
     }
-
     return new Response(JSON.stringify(data), {
       headers: {
         "Content-Type": "application/json",

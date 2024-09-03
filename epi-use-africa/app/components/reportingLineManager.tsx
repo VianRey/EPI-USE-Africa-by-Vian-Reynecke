@@ -10,6 +10,8 @@ interface ReportingLineManagerProps {
   disabled?: boolean;
   employees: Employee[];
   errorMessage?: string;
+  style?: React.CSSProperties; // Add this line
+  className?: string;
 }
 
 const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
@@ -18,7 +20,8 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
   initialSelection = null,
   disabled = false,
   employees,
-  errorMessage,
+  errorMessage, // Added this line
+  className,
 }) => {
   const [selectedManagerRole, setSelectedManagerRole] = useState<string | null>(
     initialSelection
@@ -73,16 +76,14 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
   };
 
   return (
-    <div className="w-full">
+    <div className={`w-full ${className || ""}`}>
       <Select
         variant="faded"
         items={employees}
         label={label}
         isDisabled={disabled}
-        isInvalid={!!errorMessage}
-        errorMessage={errorMessage}
         classNames={{
-          base: "w-full",
+          base: `w-full ${errorMessage ? "border-red-500" : ""}`, // Apply error border
           trigger: [
             "min-h-unit-12",
             "h-auto",
@@ -104,10 +105,11 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
           selectorIcon: "text-gray-500 dark:text-gray-400",
           value: "text-gray-800 dark:text-white",
           label: [
-            "text-gray-500 dark:text-gray-400",
-            "group-data-[focused=true]:text-red-500 !important",
+            "text-gray-500 dark:text-gray-400 group-data-[filled=true]:-translate-y-5",
+            "group-data-[filled=true]:text-gray-500",
+            errorMessage ? "text-red-500 dark:text-red-500" : "",
+            "group-data-[focused=true]:!text-red-500",
           ],
-          errorMessage: "text-red-500 text-sm mt-1",
         }}
         listboxProps={{
           itemClasses: {
@@ -159,6 +161,9 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
           </SelectItem>
         )}
       </Select>
+      {errorMessage && !disabled && (
+        <div className="text-red-500 text-xs mt-2">{errorMessage}</div>
+      )}
     </div>
   );
 };

@@ -147,6 +147,9 @@ export default function App() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Add this new state
+    const [reportingManagerMessage, setReportingManagerMessage] = useState("");
+
     const validateInputs = () => {
       const newErrors = {
         name: "",
@@ -202,6 +205,19 @@ export default function App() {
       setNewEmployee((prev) => ({ ...prev, [field]: value }));
       // Clear the error for this field when the user starts typing
       setErrors((prev) => ({ ...prev, [field]: "" }));
+    };
+
+    const handleRoleChange = (role: string) => {
+      handleInputChange("role", role);
+
+      if (role === "CEO") {
+        setNewEmployee((prev) => ({ ...prev, reporting_line_manager: null }));
+        setReportingManagerMessage("CEO does not have a reporting manager.");
+      } else if (role) {
+        setReportingManagerMessage("");
+      } else {
+        setReportingManagerMessage("Please select a role first.");
+      }
     };
 
     const handleManagerChange = (managerId: string | null) => {
@@ -367,7 +383,7 @@ export default function App() {
                   label="Role"
                   placeholder="Select a role"
                   value={newEmployee.role}
-                  onChange={(role) => handleInputChange("role", role)}
+                  onChange={handleRoleChange}
                   roles={roles}
                   errorMessage={errors.role} // Make sure this prop is correctly passed and handled in RoleDropdown
                 />
@@ -376,17 +392,25 @@ export default function App() {
             {isLoading ? (
               <Skeleton className="w-full mb-2 h-14 bg-white dark:bg-gray-900 rounded-xl cursor-text border-2 border-gray-300 dark:border-gray-600" />
             ) : (
-              <ReportingLineManager
-                label="Reporting Line Manager"
-                onSelectionChange={handleManagerChange}
-                initialSelection={newEmployee.reporting_line_manager}
-                employees={employees}
-                errorMessage={
-                  newEmployee.role !== "CEO"
-                    ? errors.reporting_line_manager
-                    : ""
-                }
-              />
+              <>
+                <ReportingLineManager
+                  label="Reporting Line Manager"
+                  onSelectionChange={handleManagerChange}
+                  initialSelection={newEmployee.reporting_line_manager}
+                  employees={employees}
+                  errorMessage={
+                    newEmployee.role !== "CEO"
+                      ? errors.reporting_line_manager
+                      : ""
+                  }
+                  disabled={!newEmployee.role || newEmployee.role === "CEO"}
+                />
+                {reportingManagerMessage && (
+                  <div className="text-sm text-gray-500 mt-2">
+                    {reportingManagerMessage}
+                  </div>
+                )}
+              </>
             )}
           </form>
           <Button
@@ -425,14 +449,94 @@ export default function App() {
       setIsEditModalOpen(true);
     };
 
-    const handleUpdateUser = (updatedEmployee: Employee) => {
-      console.log("Updating employee:", updatedEmployee);
-      setIsEditModalOpen(false);
+    const handleUpdateUser = async (updatedEmployee: Employee) => {
+      try {
+        const response = await fetch(
+          "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "updateEmployee",
+              payload: updatedEmployee,
+            }),
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          if (response.status === 400 && result.error) {
+            // Handle the case where update is not allowed
+            alert(
+              result.error +
+                ` ${result.dependentCount} employee(s) are still reporting to this role.`
+            );
+            return;
+          }
+          throw new Error("Failed to update employee");
+        }
+
+        console.log("Employee updated successfully:", result);
+
+        // Update the local state with the updated employee
+        setEmployees((prevEmployees) =>
+          prevEmployees.map((emp) =>
+            emp.id === updatedEmployee.id ? result : emp
+          )
+        );
+
+        setIsEditModalOpen(false);
+      } catch (error) {
+        console.error("Error updating employee:", error);
+        alert(
+          "An error occurred while trying to update the employee. Please try again."
+        );
+      }
     };
 
-    const handleDeleteUser = (employeeId: string) => {
-      console.log("Deleting employee:", employeeId);
-      setIsEditModalOpen(false);
+    const handleDeleteUser = async (employeeId: string) => {
+      try {
+        const response = await fetch(
+          "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "deleteEmployee",
+              payload: { id: employeeId },
+            }),
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          if (response.status === 400 && result.error) {
+            // Handle the case where deletion is not allowed
+            alert(
+              result.error +
+                ` ${result.dependentCount} employee(s) are still reporting to this role.`
+            );
+            return;
+          }
+          throw new Error("Failed to delete employee");
+        }
+
+        console.log("Employee deleted successfully:", result);
+
+        // Update the local state to remove the deleted employee
+        setEmployees((prevEmployees) =>
+          prevEmployees.filter((emp) => emp.id !== employeeId)
+        );
+
+        setIsEditModalOpen(false);
+      } catch (error) {
+        console.error("Error deleting employee:", error);
+        alert(
+          "An error occurred while trying to delete the employee. Please try again."
+        );
+      }
     };
 
     return (

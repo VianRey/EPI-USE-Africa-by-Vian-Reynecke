@@ -119,39 +119,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
   }, []);
 
-  const handleUpdate = useCallback(async () => {
-    if (editedEmployee) {
-      try {
-        // Call the onUpdate function passed as a prop to update the employee
-        const response = await fetch(
-          "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              type: "updateEmployee",
-              payload: editedEmployee,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to update employee");
-        }
-
-        const updatedEmployee = await response.json();
-        console.log("Employee updated successfully:", updatedEmployee);
-
-        onUpdate(updatedEmployee);
-        onClose();
-      } catch (error) {
-        console.error("Error updating employee:", error);
-      }
-    }
-  }, [editedEmployee, onUpdate, onClose]);
-
   const handleInputChange = useCallback(
     (field: keyof Employee, value: string | null) => {
       setEditedEmployee((prev) => {
@@ -268,7 +235,10 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                 <Button
                   className="w-full mt-2"
                   color="primary"
-                  onPress={handleUpdate}
+                  onPress={() => {
+                    onUpdate(editedEmployee);
+                    onCloseModal();
+                  }}
                 >
                   Update
                 </Button>
