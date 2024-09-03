@@ -88,14 +88,23 @@ export default function App() {
   const flattenHierarchy = useCallback(
     (employees: Employee[], managerRole: string | null = null): Employee[] => {
       let flatEmployees: Employee[] = [];
+      let visitedRoles = new Set<string>(); // Track visited roles to prevent infinite loops
 
       const addEmployeeWithDescendants = (employee: Employee) => {
+        if (visitedRoles.has(employee.role)) {
+          console.warn(`Circular reference detected in role: ${employee.role}`);
+          return; // Stop further processing if circular reference is detected
+        }
+
+        visitedRoles.add(employee.role);
         flatEmployees.push(employee);
+
         employees
           .filter((emp) => emp.reporting_line_manager === employee.role)
           .forEach(addEmployeeWithDescendants);
       };
 
+      // Start with employees who have no manager (top-level employees)
       employees
         .filter((emp) => emp.reporting_line_manager === managerRole)
         .forEach(addEmployeeWithDescendants);
@@ -105,7 +114,15 @@ export default function App() {
     []
   );
 
-  const CreateSection = () => {
+  interface CreateSectionProps {
+    roles: Role[];
+    employees: Employee[];
+  }
+
+  const CreateSection: React.FC<CreateSectionProps> = ({
+    roles,
+    employees,
+  }) => {
     const [newEmployee, setNewEmployee] = useState({
       name: "",
       surname: "",
@@ -113,7 +130,7 @@ export default function App() {
       email: "",
       role: "",
       salary: "",
-      reporting_line_manager: null as string | null,
+      reporting_line_manager: null,
     });
 
     const handleInputChange = (field: string, value: string | null) => {
@@ -122,6 +139,42 @@ export default function App() {
 
     const handleManagerChange = (managerId: string | null) => {
       handleInputChange("reporting_line_manager", managerId);
+    };
+
+    const handleCreateEmployee = async () => {
+      try {
+        const response = await fetch(
+          "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "createEmployee",
+              payload: newEmployee,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to create new employee: ");
+        }
+
+        const result = await response.json();
+        console.log("Employee created successfully:", result);
+
+        // Optionally reset the form after a successful creation
+        setNewEmployee({
+          name: "",
+          surname: "",
+          birthDate: "",
+          email: "",
+          role: "",
+          salary: "",
+          reporting_line_manager: null,
+        });
+      } catch (error) {
+        console.error("Error creating employee:", error);
+      }
     };
 
     return (
@@ -197,6 +250,13 @@ export default function App() {
               employees={employees}
             />
           </form>
+          <Button
+            color="primary"
+            className="mt-4 p-6"
+            onClick={handleCreateEmployee}
+          >
+            Create New Employee Profile
+          </Button>
         </CardBody>
       </Card>
     );
@@ -406,7 +466,7 @@ export default function App() {
           <CardBody>
             <Tabs color="primary" aria-label="CRUD Operations">
               <Tab key="create" title="Create">
-                <CreateSection />
+                <CreateSection roles={roles} employees={employees} />
               </Tab>
               <Tab key="manage" title="Manage">
                 <ManageSection />

@@ -67,9 +67,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
       }
       let data: Employee[] = await response.json();
       data.sort((a, b) => a.role.localeCompare(b.role));
-      console.log("SETTING EMPLOYEE: " + data);
       setEmployees(data);
-      console.log(employees);
     } catch (error) {
       console.error("Failed to fetch employees:", error);
       setError("Failed to fetch employees. Please try again later.");
@@ -121,10 +119,36 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
   }, []);
 
-  const handleUpdate = useCallback(() => {
+  const handleUpdate = useCallback(async () => {
     if (editedEmployee) {
-      onUpdate(editedEmployee);
-      onClose();
+      try {
+        // Call the onUpdate function passed as a prop to update the employee
+        const response = await fetch(
+          "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              type: "updateEmployee",
+              payload: editedEmployee,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to update employee");
+        }
+
+        const updatedEmployee = await response.json();
+        console.log("Employee updated successfully:", updatedEmployee);
+
+        onUpdate(updatedEmployee);
+        onClose();
+      } catch (error) {
+        console.error("Error updating employee:", error);
+      }
     }
   }, [editedEmployee, onUpdate, onClose]);
 
@@ -138,7 +162,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   const handleManagerChange = useCallback(
     (managerId: string | null) => {
       if (editedEmployee?.reporting_line_manager !== managerId) {
-        console.log("Changing manager to: ", managerId);
         handleInputChange("reporting_line_manager", managerId);
       }
     },
@@ -215,7 +238,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
 
               <ReportingLineManager
                 label="Reporting Line Manager"
-                placeholder="Select a manager"
                 onSelectionChange={handleManagerChange}
                 initialSelection={editedEmployee.reporting_line_manager}
                 employees={employees}

@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
       const { data: employees, error } = await supabase
         .from("employees")
         .select(
-          "id, name, surname, birth_date, employee_number, salary, role, reporting_line_manager, email",
+          "id, name, surname, birth_date, employee_number, salary, role, reporting_line_manager, email, created_at, updated_at",
         );
 
       if (error) {
@@ -74,9 +74,39 @@ Deno.serve(async (req) => {
       data = managers;
     } else if (type === "createEmployee") {
       console.log("Creating a new employee...");
+
+      // Generate the next employee number
+      const { data: maxEmployeeNumber } = await supabase
+        .from("employees")
+        .select("employee_number")
+        .order("employee_number", { ascending: false })
+        .limit(1)
+        .single();
+
+      let nextEmployeeNumber = "EMP001";
+      if (maxEmployeeNumber && maxEmployeeNumber.employee_number) {
+        const lastNumber = parseInt(
+          maxEmployeeNumber.employee_number.replace("EMP", ""),
+          10,
+        );
+        nextEmployeeNumber = `EMP${String(lastNumber + 1).padStart(3, "0")}`;
+      }
+
+      const newEmployeeData = {
+        name: payload.name,
+        surname: payload.surname,
+        birth_date: payload.birthDate,
+        employee_number: nextEmployeeNumber,
+        salary: payload.salary,
+        role: payload.role,
+        email: payload.email,
+        reporting_line_manager: payload.reporting_line_manager,
+      };
+
       const { data: employee, error } = await supabase
         .from("employees")
-        .insert([payload])
+        .insert([newEmployeeData])
+        .select("*")
         .single();
 
       if (error) {
@@ -94,6 +124,7 @@ Deno.serve(async (req) => {
         .from("employees")
         .update(updates)
         .eq("id", id)
+        .select("*")
         .single();
 
       if (error) {
@@ -111,6 +142,7 @@ Deno.serve(async (req) => {
         .from("employees")
         .delete()
         .eq("id", id)
+        .select("*")
         .single();
 
       if (error) {
