@@ -1,22 +1,15 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Select, SelectItem, Avatar } from "@nextui-org/react";
 import md5 from "md5";
-
-interface Employee {
-  id: number;
-  name: string;
-  surname: string;
-  role: string;
-  email: string;
-  reporting_line_manager: string | null;
-}
+import { Employee } from "../components/editUser"; // Import the Employee interface
 
 interface ReportingLineManagerProps {
   label: string;
   placeholder: string;
-  onSelectionChange: (manager: number | null) => void;
-  initialSelection?: string | number | null;
+  onSelectionChange: (manager: string | null) => void;
+  initialSelection?: string | null;
   disabled?: boolean;
+  employees: Employee[];
 }
 
 const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
@@ -25,54 +18,15 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
   onSelectionChange,
   initialSelection = null,
   disabled = false,
+  employees,
 }) => {
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [selectedManager, setSelectedManager] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchEmployees = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(
-        "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ type: "getEmployees" }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      let data: Employee[] = await response.json();
-      data.sort((a, b) => a.role.localeCompare(b.role));
-      setEmployees(data);
-    } catch (error) {
-      console.error("Failed to fetch employees:", error);
-      setError("Failed to fetch employees. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchEmployees();
-  }, [fetchEmployees]);
+  const [selectedManager, setSelectedManager] = useState<string | null>(null);
 
   useEffect(() => {
     if (employees.length > 0 && initialSelection !== null) {
-      const initialSelectionNumber =
-        typeof initialSelection === "string"
-          ? parseInt(initialSelection, 10)
-          : initialSelection;
-
       const matchingEmployee = employees.find(
         (employee) =>
-          employee.id === initialSelectionNumber ||
-          employee.role === initialSelection
+          employee.id === initialSelection || employee.role === initialSelection
       );
       if (matchingEmployee) {
         setSelectedManager(matchingEmployee.id);
@@ -84,15 +38,11 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
     }
   }, [employees, initialSelection, onSelectionChange]);
 
-  const handleSelect = useCallback(
-    (value: React.Key) => {
-      const selectedValue =
-        typeof value === "string" ? parseInt(value, 10) : (value as number);
-      setSelectedManager(selectedValue);
-      onSelectionChange(selectedValue);
-    },
-    [onSelectionChange]
-  );
+  const handleSelect = (value: React.Key) => {
+    const selectedValue = value.toString();
+    setSelectedManager(selectedValue);
+    onSelectionChange(selectedValue);
+  };
 
   const getGravatarUrl = useMemo(
     () => (email: string) => {
@@ -101,9 +51,6 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
     },
     []
   );
-
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>{error}</p>;
 
   return (
     <Select

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Modal,
   ModalContent,
@@ -13,7 +13,8 @@ import CustomInput from "../components/inputCustom";
 import RoleDropdown from "../components/roleDropdown";
 import ReportingLineManager from "../components/reportingLineManager";
 
-interface Employee {
+// Updated Employee interface
+export interface Employee {
   id: string;
   name: string;
   surname: string;
@@ -21,6 +22,10 @@ interface Employee {
   role: string;
   reporting_line_manager: string | null;
   profileImageUrl?: string;
+}
+
+interface Role {
+  role: string;
 }
 
 interface EditUserModalProps {
@@ -39,6 +44,67 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   onDelete,
 }) => {
   const [editedEmployee, setEditedEmployee] = useState<Employee | null>(null);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchEmployees = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ type: "getEmployees" }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      let data: Employee[] = await response.json();
+      data.sort((a, b) => a.role.localeCompare(b.role));
+      setEmployees(data);
+    } catch (error) {
+      console.error("Failed to fetch employees:", error);
+      setError("Failed to fetch employees. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchRoles = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ type: "getRole" }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: Role[] = await response.json();
+      setRoles(data);
+    } catch (error) {
+      console.error("Failed to fetch roles:", error);
+      setError("Failed to fetch roles. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    Promise.all([fetchEmployees(), fetchRoles()]).then(() => setLoading(false));
+  }, [fetchEmployees, fetchRoles]);
 
   useEffect(() => {
     if (isOpen && employee) {
@@ -67,9 +133,19 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     []
   );
 
+  const handleManagerChange = useCallback(
+    (managerId: string | null) => {
+      handleInputChange("reporting_line_manager", managerId);
+    },
+    [handleInputChange]
+  );
+
   if (!editedEmployee) {
-    return null; // or a loading indicator
+    return null;
   }
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
 
   return (
     <Modal
@@ -129,18 +205,15 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                 placeholder="Select a role"
                 value={editedEmployee.role}
                 onChange={(role) => handleInputChange("role", role)}
+                roles={roles}
               />
 
               <ReportingLineManager
                 label="Reporting Line Manager"
                 placeholder="Select a manager"
-                onSelectionChange={(manager) =>
-                  handleInputChange(
-                    "reporting_line_manager",
-                    manager !== null ? manager.toString() : null
-                  )
-                }
+                onSelectionChange={handleManagerChange}
                 initialSelection={editedEmployee.reporting_line_manager}
+                employees={employees}
               />
             </ModalBody>
             <ModalFooter>

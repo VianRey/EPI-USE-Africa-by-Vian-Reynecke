@@ -41,10 +41,12 @@ export default function App() {
 
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
+        setIsLoading(true);
         const response = await fetch(
           "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
           {
@@ -62,6 +64,8 @@ export default function App() {
         setEmployees(data);
       } catch (error) {
         console.error("Failed to fetch employees:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -101,6 +105,10 @@ export default function App() {
 
     const handleInputChange = (field: string, value: string | null) => {
       setNewEmployee((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleManagerChange = (managerId: string | null) => {
+      handleInputChange("reporting_line_manager", managerId);
     };
 
     return (
@@ -151,8 +159,8 @@ export default function App() {
               <RoleDropdown
                 label="Role"
                 placeholder="Select a role"
-                value={newEmployee.role}
                 onChange={(role) => handleInputChange("role", role)}
+                roles={roles}
               />
             </div>
             <CustomInput
@@ -171,13 +179,9 @@ export default function App() {
             <ReportingLineManager
               label="Reporting Line Manager"
               placeholder="Select a manager"
-              onSelectionChange={(manager) =>
-                handleInputChange(
-                  "reporting_line_manager",
-                  manager ? manager.toString() : null
-                )
-              }
+              onSelectionChange={handleManagerChange}
               initialSelection={newEmployee.reporting_line_manager}
+              employees={employees}
             />
           </form>
         </CardBody>

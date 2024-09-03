@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Select, SelectItem } from "@nextui-org/react";
 
 interface Role {
@@ -10,6 +10,7 @@ interface RoleDropdownProps {
   placeholder: string;
   value: string;
   onChange: (role: string) => void;
+  roles: Role[];
 }
 
 const RoleDropdown: React.FC<RoleDropdownProps> = ({
@@ -17,47 +18,12 @@ const RoleDropdown: React.FC<RoleDropdownProps> = ({
   placeholder,
   value,
   onChange,
+  roles,
 }) => {
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(
-          "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ type: "getRole" }),
-          }
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data: Role[] = await response.json();
-        setRoles(data);
-      } catch (error) {
-        console.error("Failed to fetch roles:", error);
-        setError("Failed to fetch roles. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRoles();
-  }, []); // Only fetch roles on mount
-
   const handleSelectionChange = (keys: any) => {
     const selectedValue = Array.from(keys)[0] as string;
     onChange(selectedValue);
   };
-
-  if (error) return <p>{error}</p>;
 
   return (
     <Select
@@ -67,7 +33,6 @@ const RoleDropdown: React.FC<RoleDropdownProps> = ({
       className="w-full mb-2"
       selectedKeys={value ? new Set([value]) : new Set()}
       onSelectionChange={handleSelectionChange}
-      disabled={loading || !roles.length}
       classNames={{
         trigger: [
           "bg-transparent",
