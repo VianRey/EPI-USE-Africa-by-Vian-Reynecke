@@ -154,7 +154,16 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
 
   const handleInputChange = useCallback(
     (field: keyof Employee, value: string | null) => {
-      setEditedEmployee((prev) => (prev ? { ...prev, [field]: value } : null));
+      setEditedEmployee((prev) => {
+        if (!prev) return null;
+
+        // If the role is changed to CEO, set the reporting line manager to null
+        if (field === "role" && value === "CEO") {
+          return { ...prev, [field]: value, reporting_line_manager: null };
+        }
+
+        return { ...prev, [field]: value };
+      });
     },
     []
   );
@@ -172,9 +181,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     return null;
   }
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>{error}</p>;
-
   return (
     <Modal
       className="bg-gray-800 text-white"
@@ -188,11 +194,11 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
               Edit Employee
             </ModalHeader>
             <ModalBody>
-              <div className="flex justify-center mb-4">
+              <div className="flex justify-left mb-4">
                 <Avatar
                   src={getGravatarUrl(editedEmployee.email)}
-                  size="lg"
                   alt="User Avatar"
+                  className="relative w-[100px] h-[100px]"
                 />
               </div>
 
@@ -240,7 +246,10 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                 label="Reporting Line Manager"
                 onSelectionChange={handleManagerChange}
                 initialSelection={editedEmployee.reporting_line_manager}
-                employees={employees}
+                employees={employees.filter(
+                  (emp) => emp.id !== editedEmployee?.id
+                )} // Exclude the current employee
+                disabled={editedEmployee.role === "CEO"} // Disable if role is CEO
               />
             </ModalBody>
             <ModalFooter>

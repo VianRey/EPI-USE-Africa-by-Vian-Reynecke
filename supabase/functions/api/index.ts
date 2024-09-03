@@ -42,10 +42,10 @@ Deno.serve(async (req) => {
       console.log("Fetched employees:", employees);
       data = employees;
     } else if (type === "getRole") {
-      console.log("Fetching unique roles...");
+      console.log("Fetching all roles from the view...");
       const { data: roles, error } = await supabase
-        .from("employees")
-        .select("role")
+        .from("all_roles") // Query the view instead of the employees table
+        .select("*") // Select all columns from the view
         .order("role");
 
       if (error) {
@@ -53,11 +53,10 @@ Deno.serve(async (req) => {
         throw error;
       }
 
-      // Get unique roles
-      const uniqueRoles = [...new Set(roles.map((r) => r.role))];
-      data = uniqueRoles.map((role) => ({ role }));
+      // The roles are already unique in the view, so no need to filter them again
+      data = roles;
 
-      console.log("Fetched unique roles:", data);
+      console.log("Fetched all roles from the view:", data);
     } else if (type === "getReportingLineManager") {
       console.log("Fetching reporting line managers...");
       const { data: managers, error } = await supabase

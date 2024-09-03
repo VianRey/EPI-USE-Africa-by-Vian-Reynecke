@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
+
 import {
+  Skeleton,
   Navbar,
   NavbarBrand,
   NavbarMenuToggle,
@@ -220,16 +222,7 @@ export default function App() {
               placeholder="Enter email"
               value={newEmployee.email}
               onChange={(e) => handleInputChange("email", e.target.value)}
-            />
-            <div className="w-full">
-              <RoleDropdown
-                label="Role"
-                placeholder="Select a role"
-                value={newEmployee.role}
-                onChange={(role) => handleInputChange("role", role)}
-                roles={roles}
-              />
-            </div>
+            />{" "}
             <CustomInput
               type="number"
               className="mb-2"
@@ -243,17 +236,36 @@ export default function App() {
                 </div>
               }
             />
-            <ReportingLineManager
-              label="Reporting Line Manager"
-              onSelectionChange={handleManagerChange}
-              initialSelection={newEmployee.reporting_line_manager}
-              employees={employees}
-            />
+            <div className="w-full">
+              {" "}
+              {isLoading ? (
+                <Skeleton className="w-full  mb-2  h-14 bg-white dark:bg-gray-900  relative inline-flex tap-highlight-transparent px-3 border-medium data-[hover=true]:border-default-400 min-h-10 rounded-medium flex-col items-start justify-center gap-0  !duration-150 transition-colors motion-reduce:transition-none outline-none group-data-[focus-visible=true]:z-10 group-data-[focus-visible=true]:ring-2 group-data-[focus-visible=true]:ring-focus group-data-[focus-visible=true]:ring-offset-2  cursor-text border-gray-300 dark:border-gray-600 " />
+              ) : (
+                <RoleDropdown
+                  label="Role"
+                  placeholder="Select a role"
+                  value={newEmployee.role}
+                  onChange={(role) => handleInputChange("role", role)}
+                  roles={roles}
+                />
+              )}
+            </div>
+            {isLoading ? (
+              <Skeleton className="w-full  mb-2  h-14 bg-white dark:bg-gray-900  relative inline-flex tap-highlight-transparent px-3 border-medium data-[hover=true]:border-default-400 min-h-10 rounded-medium flex-col items-start justify-center gap-0  !duration-150 transition-colors motion-reduce:transition-none outline-none group-data-[focus-visible=true]:z-10 group-data-[focus-visible=true]:ring-2 group-data-[focus-visible=true]:ring-focus group-data-[focus-visible=true]:ring-offset-2  cursor-text border-gray-300 dark:border-gray-600 " />
+            ) : (
+              <ReportingLineManager
+                label="Reporting Line Manager"
+                onSelectionChange={handleManagerChange}
+                initialSelection={newEmployee.reporting_line_manager}
+                employees={employees}
+              />
+            )}
           </form>
           <Button
             color="primary"
             className="mt-4 p-6"
             onClick={handleCreateEmployee}
+            isLoading={isLoading} // Optionally disable the button while loading
           >
             Create New Employee Profile
           </Button>
