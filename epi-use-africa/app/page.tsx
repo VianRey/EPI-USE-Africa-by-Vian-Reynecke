@@ -38,14 +38,25 @@ export default function Home() {
           efficiently manage your organization's employee hierarchy. Visualize,
           search, and manage your workforce with ease.
         </p>
-        <Button color="secondary" variant="solid" className="mt-4">
-          Solid
-        </Button>
         <Button
           color="primary"
           onClick={navigateToEmployeePage}
-          className="mt-4"
+          className="mt-16 text-lg px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg shadow-md hover:from-blue-600 hover:to-purple-700 transition-transform transform hover:scale-105 duration-300 ease-in-out flex items-center gap-2"
         >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            className="w-6 h-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
           Explore System
         </Button>
       </section>

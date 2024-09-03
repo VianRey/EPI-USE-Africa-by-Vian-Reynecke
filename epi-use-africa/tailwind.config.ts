@@ -29,7 +29,7 @@ const config: Config = {
             background: "#1f2937", // Dark mode background
             foreground: "#FFFFFF", // Dark mode text
             primary: {
-              DEFAULT: "#8B5CF6", // Purple for primary buttons
+              DEFAULT: "#8033ff", // Purple for primary buttons
               foreground: "#FFFFFF", // White text on primary buttons
             },
             focus: "#BEF264",
@@ -40,7 +40,7 @@ const config: Config = {
             background: "#FFFFFF", // Light mode background
             foreground: "#1f2937", // Light mode text
             primary: {
-              DEFAULT: "#8B5CF6", // Purple for primary buttons
+              DEFAULT: "#8033ff", // Purple for primary buttons
               foreground: "#FFFFFF", // White text on primary buttons
             },
             focus: "#BEF264",

@@ -102,6 +102,7 @@ const RoleSelector: React.FC<RoleSelectorProps> = ({ onRoleSelect }) => {
           ) : (
             <>
               <Select
+                variant="faded"
                 items={employees}
                 label="Select an employee"
                 placeholder="Choose an employee"
@@ -109,14 +110,26 @@ const RoleSelector: React.FC<RoleSelectorProps> = ({ onRoleSelect }) => {
                 selectedKeys={selectedEmployee ? [selectedEmployee] : []}
                 onSelectionChange={(keys) => handleSelect(Array.from(keys)[0])}
                 classNames={{
-                  label:
-                    "group-data-[filled=true]:-translate-y-5 dark:text-gray-300",
-                  trigger:
-                    "min-h-16 dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 dark:focus:bg-gray-700",
-                  listboxWrapper: "max-h-[400px]",
-                  base: "max-w-full",
-                  value: "dark:text-white",
-                  listbox: "dark:bg-gray-800 !important",
+                  trigger: [
+                    "bg-transparent",
+                    "text-gray-800 dark:text-white",
+                    "shadow-xl",
+                    "bg-white dark:bg-gray-800",
+                    "backdrop-blur-xl",
+                    "backdrop-saturate-200",
+                    "hover:bg-gray-100 dark:hover:bg-gray-800",
+                    "group-data-[focused=true]:bg-white dark:group-data-[focused=true]:bg-gray-800",
+                    "cursor-pointer",
+                    "border-gray-300 dark:border-gray-600",
+                    "dark:bg-gray-900",
+                  ],
+                  innerWrapper: "bg-transparent !important",
+                  selectorIcon: "text-gray-500 dark:text-gray-400",
+                  value: "text-gray-800 dark:text-white",
+                  label: [
+                    "text-gray-500 dark:text-gray-400",
+                    "group-data-[focused=true]:text-red-500 !important",
+                  ],
                 }}
                 listboxProps={{
                   itemClasses: {
