@@ -6,8 +6,9 @@ import {
   ModalBody,
   ModalFooter,
   Button,
-  Skeleton,
+  Avatar,
 } from "@nextui-org/react";
+import md5 from "md5";
 import CustomInput from "../components/inputCustom";
 import RoleDropdown from "../components/roleDropdown";
 import ReportingLineManager from "../components/reportingLineManager";
@@ -19,6 +20,7 @@ interface Employee {
   email: string;
   role: string;
   reporting_line_manager: string | null;
+  profileImageUrl?: string; // Optional profile image URL
 }
 
 interface EditUserModalProps {
@@ -37,17 +39,23 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   onDelete,
 }) => {
   const [editedEmployee, setEditedEmployee] = useState<Employee | null>(null);
-  const [isLoadingRoles, setIsLoadingRoles] = useState(true);
-  const [isLoadingManagers, setIsLoadingManagers] = useState(true);
 
   useEffect(() => {
     if (employee) {
       setEditedEmployee({ ...employee });
-      // Simulate loading for roles and managers
-      setTimeout(() => setIsLoadingRoles(false), 1000); // Simulate 1 second loading time
-      setTimeout(() => setIsLoadingManagers(false), 1200); // Simulate 1.2 second loading time
     }
   }, [employee]);
+
+  const getGravatarUrl = (email: string) => {
+    const hash = md5(email.toLowerCase().trim());
+    return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
+  };
+
+  const handleUpdate = async () => {
+    if (editedEmployee) {
+      onUpdate(editedEmployee);
+    }
+  };
 
   return (
     <Modal
@@ -64,6 +72,28 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
             <ModalBody>
               {editedEmployee ? (
                 <>
+                  {/* Display Gravatar */}
+                  <div className="flex justify-center mb-4">
+                    <Avatar
+                      src={getGravatarUrl(editedEmployee.email)}
+                      size="sm"
+                      alt="User Avatar"
+                    />
+                  </div>
+
+                  <p className="text-sm text-gray-400 mb-4">
+                    This profile picture is provided by{" "}
+                    <a
+                      href="https://en.gravatar.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400"
+                    >
+                      Gravatar
+                    </a>
+                    . To change your avatar, please update it on Gravatar.
+                  </p>
+
                   <CustomInput
                     label="Name"
                     value={editedEmployee.name}
@@ -98,69 +128,32 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                     className="mb-2"
                   />
 
-                  {/* Role Dropdown with Skeleton */}
-                  {isLoadingRoles ? (
-                    <Skeleton
-                      className="
-                        relative 
-                        w-full 
-                        h-14 
-                        rounded-medium 
-                        bg-transparent 
-                        dark:bg-gray-900 
-                        dark:border-gray-100 
-                        px-3 
-                        py-2 
-                        text-gray-800 
-                        dark:text-white 
-                        shadow-xl
-                    "
-                    />
-                  ) : (
-                    <RoleDropdown
-                      label="Role"
-                      placeholder="Select a role"
-                      onSelectionChange={(role) =>
-                        setEditedEmployee({
-                          ...editedEmployee,
-                          role: role,
-                        })
-                      }
-                      initialSelection={editedEmployee.role}
-                    />
-                  )}
+                  {/* Role Dropdown */}
+                  <RoleDropdown
+                    label="Role"
+                    placeholder="Select a role"
+                    onSelectionChange={(role) =>
+                      setEditedEmployee({
+                        ...editedEmployee,
+                        role: role,
+                      })
+                    }
+                    initialSelection={editedEmployee.role}
+                  />
 
-                  {/* Reporting Line Manager with Skeleton */}
-                  {isLoadingManagers ? (
-                    <Skeleton
-                      className="
-                        relative 
-                        w-full 
-                        h-14 
-                        rounded-medium 
-                        bg-transparent 
-                        dark:bg-gray-900 
-                        dark:border-gray-100 
-                        px-3 
-                        py-2 
-                        text-gray-800 
-                        dark:text-white 
-                        shadow-xl
-                    "
-                    />
-                  ) : (
-                    <ReportingLineManager
-                      label="Reporting Line Manager"
-                      placeholder="Select a manager"
-                      onSelectionChange={(manager) =>
+                  {/* Reporting Line Manager */}
+                  <ReportingLineManager
+                    label="Reporting Line Manager"
+                    placeholder="Select a manager"
+                    onSelectionChange={(manager) => {
+                      console.log(manager),
                         setEditedEmployee({
                           ...editedEmployee,
                           reporting_line_manager: manager || null,
-                        })
-                      }
-                      initialSelection={editedEmployee.reporting_line_manager}
-                    />
-                  )}
+                        });
+                    }}
+                    initialSelection={editedEmployee.reporting_line_manager}
+                  />
                 </>
               ) : (
                 <p>Loading employee data...</p>
@@ -182,14 +175,9 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                   Delete User
                 </Button>
                 <Button
-                  className="w-full mt-2" // Added mt-2 to give space between buttons
+                  className="w-full mt-2"
                   color="primary"
-                  onPress={() => {
-                    if (editedEmployee) {
-                      onUpdate(editedEmployee);
-                      onCloseModal();
-                    }
-                  }}
+                  onPress={handleUpdate}
                 >
                   Update
                 </Button>

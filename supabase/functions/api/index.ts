@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { type } = await req.json();
+    const { type, payload } = await req.json();
     console.log("Request type:", type);
 
     let data;
@@ -72,6 +72,54 @@ Deno.serve(async (req) => {
 
       console.log("Fetched reporting line managers:", managers);
       data = managers;
+    } else if (type === "createEmployee") {
+      console.log("Creating a new employee...");
+      const { data: employee, error } = await supabase
+        .from("employees")
+        .insert([payload])
+        .single();
+
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+
+      console.log("Created employee:", employee);
+      data = employee;
+    } else if (type === "updateEmployee") {
+      console.log("Updating an employee...");
+      const { id, ...updates } = payload;
+
+      const { data: employee, error } = await supabase
+        .from("employees")
+        .update(updates)
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+
+      console.log("Updated employee:", employee);
+      data = employee;
+    } else if (type === "deleteEmployee") {
+      console.log("Deleting an employee...");
+      const { id } = payload;
+
+      const { data: employee, error } = await supabase
+        .from("employees")
+        .delete()
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+
+      console.log("Deleted employee:", employee);
+      data = employee;
     } else {
       throw new Error("Invalid request type");
     }

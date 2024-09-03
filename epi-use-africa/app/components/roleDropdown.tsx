@@ -19,7 +19,7 @@ const RoleDropdown: React.FC<RoleDropdownProps> = ({
   initialSelection = "", // Default value for initialSelection
 }) => {
   const [roles, setRoles] = useState<Role[]>([]);
-  const [selectedRole, setSelectedRole] = useState<string>(initialSelection);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,26 +48,29 @@ const RoleDropdown: React.FC<RoleDropdownProps> = ({
         }
         const data: Role[] = await response.json();
         setRoles(data);
+        setLoading(false);
+
+        // Set initial selection only if it exists in the roles
+        if (
+          initialSelection &&
+          data.some((role) => role.role === initialSelection)
+        ) {
+          setSelectedRole(initialSelection);
+          onSelectionChange(initialSelection);
+        } else {
+          setSelectedRole(null); // clear selection if initialSelection isn't valid
+        }
       } catch (error) {
         console.error("Failed to fetch roles:", error);
         setError("Failed to fetch roles. Please try again later.");
-      } finally {
         setLoading(false);
       }
     };
 
     fetchRoles();
-  }, []);
-
-  useEffect(() => {
-    // If there is an initial selection, trigger the onSelectionChange with it
-    if (initialSelection) {
-      onSelectionChange(initialSelection);
-    }
   }, [initialSelection, onSelectionChange]);
 
   const handleSelectionChange = (keys: any) => {
-    // The keys object might be a SharedSelection type, so extract the selected key safely
     const selectedValue = Array.isArray(keys) ? keys[0] : keys.currentKey || "";
     setSelectedRole(selectedValue);
     onSelectionChange(selectedValue);
@@ -83,6 +86,7 @@ const RoleDropdown: React.FC<RoleDropdownProps> = ({
       className="w-full mb-2"
       selectedKeys={selectedRole ? new Set([selectedRole]) : new Set()}
       onSelectionChange={handleSelectionChange}
+      disabled={loading || !roles.length} // Disable if loading or no roles available
       classNames={{
         trigger: [
           "bg-transparent",
