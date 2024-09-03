@@ -8,13 +8,13 @@ import { useRouter } from "next/navigation";
 export default function Home() {
   const router = useRouter();
   const navigateToEmployeePage = () => {
-    router.push("/employee"); // Replace with the correct path to your employee page
+    router.push("/employee");
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-8 bg-gradient-to-b from-gray-100 to-white dark:from-gray-900 dark:to-gray-800">
-      <header className="w-full py-6 px-4 bg-white dark:bg-gray-800 shadow-md rounded-lg mb-8">
-        <h1 className="text-4xl font-bold text-center bg-clip-text text-transparent  bg-gray-800 dark:bg-white">
+    <main className="flex min-h-screen flex-col items-center justify-between p-8 bg-background text-foreground">
+      <header className="w-full py-6 px-4 bg-background shadow-md rounded-lg mb-8">
+        <h1 className="text-4xl font-bold text-center text-foreground">
           Employee Hierarchy Management System
         </h1>
       </header>
@@ -33,14 +33,18 @@ export default function Home() {
             priority
           />
         </div>
-        <p className="mt-6 max-w-2xl text-lg opacity-80 leading-relaxed">
+        <p className="mt-6 max-w-2xl text-lg text-foreground/80 leading-relaxed">
           A cloud-hosted application built with Next.js and Supabase to
           efficiently manage your organization's employee hierarchy. Visualize,
           search, and manage your workforce with ease.
         </p>
+        <Button color="secondary" variant="solid" className="mt-4">
+          Solid
+        </Button>
         <Button
-          className="font-bold p-8 text-2xl mt-12 bg-gradient-to-r from-blue-500 to-purple-500 text-white "
-          onClick={navigateToEmployeePage} // Attach the navigation function to the button's onClick
+          color="primary"
+          onClick={navigateToEmployeePage}
+          className="mt-4"
         >
           Explore System
         </Button>
@@ -73,13 +77,15 @@ export default function Home() {
         ].map((feature, index) => (
           <div
             key={index}
-            className="p-6 rounded-lg border border-transparent transition-all duration-300 hover:border-gray-300 hover:bg-white hover:shadow-xl dark:hover:bg-gray-800 hover:cursor-pointer"
+            className="p-6 rounded-lg border border-transparent transition-all duration-300 hover:border-gray-300 hover:bg-background hover:shadow-xl dark:hover:bg-gray-800 hover:cursor-pointer"
           >
             <feature.icon
               className={`mx-auto mb-4 text-5xl ${feature.color}`}
             />
-            <h3 className="mb-3 text-xl font-semibold">{feature.title}</h3>
-            <p className="text-sm opacity-70">{feature.description}</p>
+            <h3 className="mb-3 text-xl font-semibold text-foreground">
+              {feature.title}
+            </h3>
+            <p className="text-sm text-foreground/70">{feature.description}</p>
           </div>
         ))}
       </section>
@@ -95,7 +101,7 @@ export default function Home() {
             "Cloud-hosted for easy access and scalability",
             "Responsive design for desktop and mobile use",
           ].map((feature, index) => (
-            <li key={index} className="flex items-center">
+            <li key={index} className="flex items-center text-foreground">
               <svg
                 className="w-6 h-6 mr-2 text-green-500"
                 fill="none"
@@ -117,8 +123,8 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="mt-32 w-full text-center py-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-        <p className="text-sm opacity-50">
+      <footer className="mt-32 w-full text-center py-4 bg-background rounded-lg">
+        <p className="text-sm text-foreground/50">
           © {new Date().getFullYear()} Vian Reynecke. All rights reserved.
         </p>
       </footer>

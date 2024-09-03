@@ -1,4 +1,3 @@
-// tailwind.config.ts
 import type { Config } from "tailwindcss";
 import { nextui } from "@nextui-org/react";
 
@@ -9,6 +8,7 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: "class", // Add this line
   theme: {
     extend: {
       fontFamily: {
@@ -23,38 +23,27 @@ const config: Config = {
   },
   plugins: [
     nextui({
-      layout: {
-        disabledOpacity: "0.3",
-        radius: {
-          small: "2px",
-          medium: "4px",
-          large: "6px",
-        },
-        borderWidth: {
-          small: "1px",
-          medium: "1px",
-          large: "2px",
-        },
-      },
       themes: {
-        light: {
-          colors: {
-            background: "#FFFFFF",
-            foreground: "#1F2937",
-            primary: {
-              DEFAULT: "#0070F3",
-              foreground: "#FFFFFF",
-            },
-          },
-        },
         dark: {
           colors: {
-            background: "#1F2937",
-            foreground: "#FFFFFF",
+            background: "#1f2937", // Dark mode background
+            foreground: "#FFFFFF", // Dark mode text
             primary: {
-              DEFAULT: "#0070F3",
-              foreground: "#FFFFFF",
+              DEFAULT: "#8B5CF6", // Purple for primary buttons
+              foreground: "#FFFFFF", // White text on primary buttons
             },
+            focus: "#BEF264",
+          },
+        },
+        light: {
+          colors: {
+            background: "#FFFFFF", // Light mode background
+            foreground: "#1f2937", // Light mode text
+            primary: {
+              DEFAULT: "#8B5CF6", // Purple for primary buttons
+              foreground: "#FFFFFF", // White text on primary buttons
+            },
+            focus: "#BEF264",
           },
         },
       },
