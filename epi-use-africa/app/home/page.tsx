@@ -117,15 +117,16 @@ export default function App() {
           />
           <CustomInput type="date" label="Birth Date" placeholder="Enter DOB" />
           <CustomInput label="Email" type="email" placeholder="Enter email" />
-          {/* <div className="mb-2 w-full">
+          <div className=" w-full">
             <RoleDropdown
               label="Role"
               placeholder="Select a role"
               onSelectionChange={(role) => console.log(role)}
             />
-          </div> */}
+          </div>
           <CustomInput
             type="number"
+            className="mb-2"
             label="Salary"
             placeholder="Enter salary"
             startContent={
@@ -134,11 +135,11 @@ export default function App() {
               </div>
             }
           />
-          {/* <ReportingLineManager
+          <ReportingLineManager
             label="Reporting Line Manager"
             placeholder="Select a manager"
             onSelectionChange={(manager) => console.log(manager)}
-          /> */}
+          />
         </form>
       </CardBody>
     </Card>

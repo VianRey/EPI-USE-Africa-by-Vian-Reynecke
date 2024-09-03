@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Modal,
   ModalContent,
@@ -20,7 +20,7 @@ interface Employee {
   email: string;
   role: string;
   reporting_line_manager: string | null;
-  profileImageUrl?: string; // Optional profile image URL
+  profileImageUrl?: string;
 }
 
 interface EditUserModalProps {
@@ -40,11 +40,19 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
 }) => {
   const [editedEmployee, setEditedEmployee] = useState<Employee | null>(null);
 
-  useEffect(() => {
+  const initializeEmployee = useCallback(() => {
     if (employee) {
       setEditedEmployee({ ...employee });
     }
   }, [employee]);
+
+  useEffect(() => {
+    if (isOpen) {
+      initializeEmployee();
+    } else {
+      setEditedEmployee(null);
+    }
+  }, [isOpen, initializeEmployee]);
 
   const getGravatarUrl = (email: string) => {
     const hash = md5(email.toLowerCase().trim());
@@ -54,7 +62,12 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   const handleUpdate = async () => {
     if (editedEmployee) {
       onUpdate(editedEmployee);
+      onClose();
     }
+  };
+
+  const handleInputChange = (field: keyof Employee, value: string | null) => {
+    setEditedEmployee((prev) => (prev ? { ...prev, [field]: value } : null));
   };
 
   return (
@@ -72,11 +85,10 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
             <ModalBody>
               {editedEmployee ? (
                 <>
-                  {/* Display Gravatar */}
                   <div className="flex justify-center mb-4">
                     <Avatar
                       src={getGravatarUrl(editedEmployee.email)}
-                      size="sm"
+                      size="lg"
                       alt="User Avatar"
                     />
                   </div>
@@ -97,61 +109,42 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                   <CustomInput
                     label="Name"
                     value={editedEmployee.name}
-                    onChange={(e) =>
-                      setEditedEmployee({
-                        ...editedEmployee,
-                        name: e.target.value,
-                      })
-                    }
+                    onChange={(e) => handleInputChange("name", e.target.value)}
                     className="mb-2"
                   />
                   <CustomInput
                     label="Surname"
                     value={editedEmployee.surname}
                     onChange={(e) =>
-                      setEditedEmployee({
-                        ...editedEmployee,
-                        surname: e.target.value,
-                      })
+                      handleInputChange("surname", e.target.value)
                     }
                     className="mb-2"
                   />
                   <CustomInput
                     label="Email"
                     value={editedEmployee.email}
-                    onChange={(e) =>
-                      setEditedEmployee({
-                        ...editedEmployee,
-                        email: e.target.value,
-                      })
-                    }
+                    onChange={(e) => handleInputChange("email", e.target.value)}
                     className="mb-2"
                   />
 
-                  {/* Role Dropdown */}
                   <RoleDropdown
                     label="Role"
                     placeholder="Select a role"
                     onSelectionChange={(role) =>
-                      setEditedEmployee({
-                        ...editedEmployee,
-                        role: role,
-                      })
+                      handleInputChange("role", role)
                     }
                     initialSelection={editedEmployee.role}
                   />
 
-                  {/* Reporting Line Manager */}
                   <ReportingLineManager
                     label="Reporting Line Manager"
                     placeholder="Select a manager"
-                    onSelectionChange={(manager) => {
-                      console.log(manager),
-                        setEditedEmployee({
-                          ...editedEmployee,
-                          reporting_line_manager: manager || null,
-                        });
-                    }}
+                    onSelectionChange={(manager) =>
+                      handleInputChange(
+                        "reporting_line_manager",
+                        manager !== null ? manager.toString() : null
+                      )
+                    }
                     initialSelection={editedEmployee.reporting_line_manager}
                   />
                 </>
