@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Navbar,
   NavbarBrand,
@@ -43,7 +43,6 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
-    console.log("loopnig");
     const fetchEmployees = async () => {
       try {
         const response = await fetch(
@@ -69,81 +68,122 @@ export default function App() {
     fetchEmployees();
   }, []);
 
-  const flattenHierarchy = (
-    employees: Employee[],
-    managerRole: string | null = null
-  ): Employee[] => {
-    let flatEmployees: Employee[] = [];
+  const flattenHierarchy = useCallback(
+    (employees: Employee[], managerRole: string | null = null): Employee[] => {
+      let flatEmployees: Employee[] = [];
 
-    const addEmployeeWithDescendants = (employee: Employee) => {
-      flatEmployees.push(employee);
+      const addEmployeeWithDescendants = (employee: Employee) => {
+        flatEmployees.push(employee);
+        employees
+          .filter((emp) => emp.reporting_line_manager === employee.role)
+          .forEach(addEmployeeWithDescendants);
+      };
+
       employees
-        .filter((emp) => emp.reporting_line_manager === employee.role)
+        .filter((emp) => emp.reporting_line_manager === managerRole)
         .forEach(addEmployeeWithDescendants);
+
+      return flatEmployees;
+    },
+    []
+  );
+
+  const CreateSection = () => {
+    const [newEmployee, setNewEmployee] = useState({
+      name: "",
+      surname: "",
+      birthDate: "",
+      email: "",
+      role: "",
+      salary: "",
+      reporting_line_manager: null as string | null,
+    });
+
+    const handleInputChange = (field: string, value: string | null) => {
+      setNewEmployee((prev) => ({ ...prev, [field]: value }));
     };
 
-    employees
-      .filter((emp) => emp.reporting_line_manager === managerRole)
-      .forEach(addEmployeeWithDescendants);
-
-    return flatEmployees;
-  };
-
-  const CreateSection = () => (
-    <Card className="w-full dark:bg-gray-800 bg-white shadow-md rounded-xl">
-      <CardHeader className="flex gap-3">
-        <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-          <FaUserPlus className="text-5xl text-blue-500" />
-        </div>
-        <div className="flex flex-col">
-          <p className="text-md dark:text-white text-gray-900">Create</p>
-          <p className="text-small dark:text-default-400 text-default-500">
-            Create a new user
-          </p>
-        </div>
-      </CardHeader>
-      <Divider />
-      <CardBody className="dark:text-gray-300 text-gray-700">
-        <form className="w-full">
-          <CustomInput
-            type="text"
-            label="First Name"
-            placeholder="Enter name"
-          />
-          <CustomInput
-            type="text"
-            label="Surname"
-            placeholder="Enter surname"
-          />
-          <CustomInput type="date" label="Birth Date" placeholder="Enter DOB" />
-          <CustomInput label="Email" type="email" placeholder="Enter email" />
-          <div className=" w-full">
-            <RoleDropdown
-              label="Role"
-              placeholder="Select a role"
-              onSelectionChange={(role) => console.log(role)}
-            />
+    return (
+      <Card className="w-full dark:bg-gray-800 bg-white shadow-md rounded-xl">
+        <CardHeader className="flex gap-3">
+          <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+            <FaUserPlus className="text-5xl text-blue-500" />
           </div>
-          <CustomInput
-            type="number"
-            className="mb-2"
-            label="Salary"
-            placeholder="Enter salary"
-            startContent={
-              <div className="pointer-events-none flex items-center">
-                <span className="text-default-400 text-small">R</span>
-              </div>
-            }
-          />
-          <ReportingLineManager
-            label="Reporting Line Manager"
-            placeholder="Select a manager"
-            onSelectionChange={(manager) => console.log(manager)}
-          />
-        </form>
-      </CardBody>
-    </Card>
-  );
+          <div className="flex flex-col">
+            <p className="text-md dark:text-white text-gray-900">Create</p>
+            <p className="text-small dark:text-default-400 text-default-500">
+              Create a new user
+            </p>
+          </div>
+        </CardHeader>
+        <Divider />
+        <CardBody className="dark:text-gray-300 text-gray-700">
+          <form className="w-full">
+            <CustomInput
+              type="text"
+              label="First Name"
+              placeholder="Enter name"
+              value={newEmployee.name}
+              onChange={(e) => handleInputChange("name", e.target.value)}
+            />
+            <CustomInput
+              type="text"
+              label="Surname"
+              placeholder="Enter surname"
+              value={newEmployee.surname}
+              onChange={(e) => handleInputChange("surname", e.target.value)}
+            />
+            <CustomInput
+              type="date"
+              label="Birth Date"
+              placeholder="Enter DOB"
+              value={newEmployee.birthDate}
+              onChange={(e) => handleInputChange("birthDate", e.target.value)}
+            />
+            <CustomInput
+              label="Email"
+              type="email"
+              placeholder="Enter email"
+              value={newEmployee.email}
+              onChange={(e) => handleInputChange("email", e.target.value)}
+            />
+            <div className="w-full">
+              <RoleDropdown
+                label="Role"
+                placeholder="Select a role"
+                value={newEmployee.role}
+                onChange={(role) => handleInputChange("role", role)}
+              />
+            </div>
+            <CustomInput
+              type="number"
+              className="mb-2"
+              label="Salary"
+              placeholder="Enter salary"
+              value={newEmployee.salary}
+              onChange={(e) => handleInputChange("salary", e.target.value)}
+              startContent={
+                <div className="pointer-events-none flex items-center">
+                  <span className="text-default-400 text-small">R</span>
+                </div>
+              }
+            />
+            <ReportingLineManager
+              label="Reporting Line Manager"
+              placeholder="Select a manager"
+              onSelectionChange={(manager) =>
+                handleInputChange(
+                  "reporting_line_manager",
+                  manager ? manager.toString() : null
+                )
+              }
+              initialSelection={newEmployee.reporting_line_manager}
+            />
+          </form>
+        </CardBody>
+      </Card>
+    );
+  };
 
   const ManageSection = () => {
     const [searchTerm, setSearchTerm] = useState("");
@@ -247,8 +287,6 @@ export default function App() {
         <NavbarContent className="sm:hidden pr-3 justify-center dark:text-white text-gray-600">
           <NavbarBrand>
             <div className="relative w-24">
-              {" "}
-              {/* Set fixed width and height */}
               <Image
                 src="/logo.png"
                 alt="Project Logo"
@@ -262,8 +300,6 @@ export default function App() {
         <NavbarContent className="hidden sm:flex flex-1 justify-between items-center dark:text-white text-gray-600">
           <NavbarBrand className="flex-shrink-0">
             <div className="relative w-32">
-              {" "}
-              {/* Adjust width and height for larger screens */}
               <Image
                 src="/logo.png"
                 alt="Project Logo"

@@ -8,18 +8,17 @@ interface Role {
 interface RoleDropdownProps {
   label: string;
   placeholder: string;
-  onSelectionChange: (role: string) => void;
-  initialSelection?: string; // Optional prop for initial selection
+  value: string;
+  onChange: (role: string) => void;
 }
 
 const RoleDropdown: React.FC<RoleDropdownProps> = ({
   label,
   placeholder,
-  onSelectionChange,
-  initialSelection = "", // Default value for initialSelection
+  value,
+  onChange,
 }) => {
   const [roles, setRoles] = useState<Role[]>([]);
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,42 +37,24 @@ const RoleDropdown: React.FC<RoleDropdownProps> = ({
           }
         );
         if (!response.ok) {
-          const errorData = await response.json();
-          console.error("Error response:", errorData);
-          throw new Error(
-            `HTTP error! status: ${response.status}, message: ${JSON.stringify(
-              errorData
-            )}`
-          );
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data: Role[] = await response.json();
         setRoles(data);
-        setLoading(false);
-
-        // Set initial selection only if it exists in the roles
-        if (
-          initialSelection &&
-          data.some((role) => role.role === initialSelection)
-        ) {
-          setSelectedRole(initialSelection);
-          onSelectionChange(initialSelection);
-        } else {
-          setSelectedRole(null); // clear selection if initialSelection isn't valid
-        }
       } catch (error) {
         console.error("Failed to fetch roles:", error);
         setError("Failed to fetch roles. Please try again later.");
+      } finally {
         setLoading(false);
       }
     };
 
     fetchRoles();
-  }, [initialSelection, onSelectionChange]);
+  }, []); // Only fetch roles on mount
 
   const handleSelectionChange = (keys: any) => {
-    const selectedValue = Array.isArray(keys) ? keys[0] : keys.currentKey || "";
-    setSelectedRole(selectedValue);
-    onSelectionChange(selectedValue);
+    const selectedValue = Array.from(keys)[0] as string;
+    onChange(selectedValue);
   };
 
   if (error) return <p>{error}</p>;
@@ -84,9 +65,9 @@ const RoleDropdown: React.FC<RoleDropdownProps> = ({
       label={label}
       placeholder={placeholder}
       className="w-full mb-2"
-      selectedKeys={selectedRole ? new Set([selectedRole]) : new Set()}
+      selectedKeys={value ? new Set([value]) : new Set()}
       onSelectionChange={handleSelectionChange}
-      disabled={loading || !roles.length} // Disable if loading or no roles available
+      disabled={loading || !roles.length}
       classNames={{
         trigger: [
           "bg-transparent",

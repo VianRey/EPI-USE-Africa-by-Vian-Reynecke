@@ -40,35 +40,36 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
 }) => {
   const [editedEmployee, setEditedEmployee] = useState<Employee | null>(null);
 
-  const initializeEmployee = useCallback(() => {
-    if (employee) {
-      setEditedEmployee({ ...employee });
-    }
-  }, [employee]);
-
   useEffect(() => {
-    if (isOpen) {
-      initializeEmployee();
-    } else {
+    if (isOpen && employee) {
+      setEditedEmployee({ ...employee });
+    } else if (!isOpen) {
       setEditedEmployee(null);
     }
-  }, [isOpen, initializeEmployee]);
+  }, [isOpen, employee]);
 
-  const getGravatarUrl = (email: string) => {
+  const getGravatarUrl = useCallback((email: string) => {
     const hash = md5(email.toLowerCase().trim());
     return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
-  };
+  }, []);
 
-  const handleUpdate = async () => {
+  const handleUpdate = useCallback(() => {
     if (editedEmployee) {
       onUpdate(editedEmployee);
       onClose();
     }
-  };
+  }, [editedEmployee, onUpdate, onClose]);
 
-  const handleInputChange = (field: keyof Employee, value: string | null) => {
-    setEditedEmployee((prev) => (prev ? { ...prev, [field]: value } : null));
-  };
+  const handleInputChange = useCallback(
+    (field: keyof Employee, value: string | null) => {
+      setEditedEmployee((prev) => (prev ? { ...prev, [field]: value } : null));
+    },
+    []
+  );
+
+  if (!editedEmployee) {
+    return null; // or a loading indicator
+  }
 
   return (
     <Modal
@@ -83,74 +84,64 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
               Edit Employee
             </ModalHeader>
             <ModalBody>
-              {editedEmployee ? (
-                <>
-                  <div className="flex justify-center mb-4">
-                    <Avatar
-                      src={getGravatarUrl(editedEmployee.email)}
-                      size="lg"
-                      alt="User Avatar"
-                    />
-                  </div>
+              <div className="flex justify-center mb-4">
+                <Avatar
+                  src={getGravatarUrl(editedEmployee.email)}
+                  size="lg"
+                  alt="User Avatar"
+                />
+              </div>
 
-                  <p className="text-sm text-gray-400 mb-4">
-                    This profile picture is provided by{" "}
-                    <a
-                      href="https://en.gravatar.com/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-400"
-                    >
-                      Gravatar
-                    </a>
-                    . To change your avatar, please update it on Gravatar.
-                  </p>
+              <p className="text-sm text-gray-400 mb-4">
+                This profile picture is provided by{" "}
+                <a
+                  href="https://en.gravatar.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400"
+                >
+                  Gravatar
+                </a>
+                . To change your avatar, please update it on Gravatar.
+              </p>
 
-                  <CustomInput
-                    label="Name"
-                    value={editedEmployee.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    className="mb-2"
-                  />
-                  <CustomInput
-                    label="Surname"
-                    value={editedEmployee.surname}
-                    onChange={(e) =>
-                      handleInputChange("surname", e.target.value)
-                    }
-                    className="mb-2"
-                  />
-                  <CustomInput
-                    label="Email"
-                    value={editedEmployee.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    className="mb-2"
-                  />
+              <CustomInput
+                label="Name"
+                value={editedEmployee.name}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+                className="mb-2"
+              />
+              <CustomInput
+                label="Surname"
+                value={editedEmployee.surname}
+                onChange={(e) => handleInputChange("surname", e.target.value)}
+                className="mb-2"
+              />
+              <CustomInput
+                label="Email"
+                value={editedEmployee.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                className="mb-2"
+              />
 
-                  <RoleDropdown
-                    label="Role"
-                    placeholder="Select a role"
-                    onSelectionChange={(role) =>
-                      handleInputChange("role", role)
-                    }
-                    initialSelection={editedEmployee.role}
-                  />
+              <RoleDropdown
+                label="Role"
+                placeholder="Select a role"
+                value={editedEmployee.role}
+                onChange={(role) => handleInputChange("role", role)}
+              />
 
-                  <ReportingLineManager
-                    label="Reporting Line Manager"
-                    placeholder="Select a manager"
-                    onSelectionChange={(manager) =>
-                      handleInputChange(
-                        "reporting_line_manager",
-                        manager !== null ? manager.toString() : null
-                      )
-                    }
-                    initialSelection={editedEmployee.reporting_line_manager}
-                  />
-                </>
-              ) : (
-                <p>Loading employee data...</p>
-              )}
+              <ReportingLineManager
+                label="Reporting Line Manager"
+                placeholder="Select a manager"
+                onSelectionChange={(manager) =>
+                  handleInputChange(
+                    "reporting_line_manager",
+                    manager !== null ? manager.toString() : null
+                  )
+                }
+                initialSelection={editedEmployee.reporting_line_manager}
+              />
             </ModalBody>
             <ModalFooter>
               <div className="flex flex-col w-full">
@@ -159,10 +150,8 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                   color="danger"
                   variant="light"
                   onPress={() => {
-                    if (editedEmployee) {
-                      onDelete(editedEmployee.id);
-                      onCloseModal();
-                    }
+                    onDelete(editedEmployee.id);
+                    onCloseModal();
                   }}
                 >
                   Delete User
