@@ -1,10 +1,16 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Card, CardBody, Image } from "@nextui-org/react";
-import CustomNavbar from "../components/navbar";
-import EmployeeHierarchy from "../components/editHierachy";
-import Spinner from "../components/loading";
-
+import dynamic from "next/dynamic";
+const Spinner = dynamic(() => import("../components/loading"), {
+  ssr: false,
+});
+const EmployeeHierarchy = dynamic(() => import("../components/editHierachy"), {
+  ssr: false,
+});
+const CustomNavbar = dynamic(() => import("../components/navbar"), {
+  ssr: false,
+});
 interface Employee {
   id: string;
   name: string;
@@ -14,7 +20,7 @@ interface Employee {
   reporting_line_manager: string | null;
 }
 
-export default function hierarchy() {
+export default function HierarchyPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

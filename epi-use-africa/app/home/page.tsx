@@ -16,14 +16,32 @@ import {
   Tab,
 } from "@nextui-org/react";
 import { FaUserPlus, FaUsers } from "react-icons/fa";
-import CustomInput from "../components/inputCustom";
-import RoleDropdown from "../components/roleDropdown";
-import ReportingLineManager from "../components/reportingLineManager";
-import EmployeeHierarchy from "../components/editHierachy";
-import EditUserModal from "../components/editUser";
-import CustomNavbar from "../components/navbar";
-import Spinner from "../components/loading"; // Ensure Spinner is imported
+import dynamic from "next/dynamic";
 
+const CustomInput = dynamic(() => import("../components/inputCustom"), {
+  ssr: false,
+});
+const RoleDropdown = dynamic(() => import("../components/roleDropdown"), {
+  ssr: false,
+});
+const ReportingLineManager = dynamic(
+  () => import("../components/reportingLineManager"),
+  {
+    ssr: false,
+  }
+);
+const CustomNavbar = dynamic(() => import("../components/navbar"), {
+  ssr: false,
+});
+const EditUserModal = dynamic(() => import("../components/editUser"), {
+  ssr: false,
+});
+const Spinner = dynamic(() => import("../components/loading"), {
+  ssr: false,
+});
+const EmployeeHierarchy = dynamic(() => import("../components/editHierachy"), {
+  ssr: false,
+});
 interface Employee {
   id: string;
   name: string;
@@ -63,11 +81,9 @@ export default function home() {
       },
     });
   };
-  const menuItems = ["Home", "Hierarchy", "About Us"];
 
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
