@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
-
 import {
   Skeleton,
   Navbar,
@@ -257,7 +256,9 @@ export default function App() {
             ...prev,
             email: "This email already exists",
           }));
-          setIsSubmitting(false);
+          toast.error(
+            "An employee with this email address already exists in the system."
+          );
           return;
         }
 
@@ -275,10 +276,25 @@ export default function App() {
         );
 
         if (!createResponse.ok) {
-          throw new Error("Failed to create new employee");
+          throw new Error("Failed to create employee");
         }
 
         const result = await createResponse.json();
+
+        if (result.error) {
+          if (
+            result.error ===
+            "A CEO already exists in the system. Only one CEO is allowed."
+          ) {
+            toast.error(
+              "A CEO already exists in the system. Only one CEO is allowed."
+            );
+          } else {
+            toast.error(result.error);
+          }
+          return;
+        }
+
         console.log("Employee created successfully:", result);
 
         // Reset the form after a successful creation
@@ -301,10 +317,15 @@ export default function App() {
           reporting_line_manager: "",
         });
 
-        // TODO: Add a success message or notification here
+        // Success message
+        toast.success(
+          `${result.name} ${result.surname} has been successfully added to the system.`
+        );
       } catch (error) {
         console.error("Error creating employee:", error);
-        // TODO: Add a general error message here
+        toast.error(
+          "An unexpected error occurred while creating the employee. Please try again."
+        );
       } finally {
         setIsSubmitting(false);
       }

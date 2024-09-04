@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "../app/providers";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner"; // Change this import to use Sonner
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,9 +19,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <Providers>{children}</Providers>
-        <Toaster position="bottom-center" />
-        {children}
+        <Providers>
+          {children}
+          <Toaster position="bottom-center" />
+        </Providers>
       </body>
     </html>
   );

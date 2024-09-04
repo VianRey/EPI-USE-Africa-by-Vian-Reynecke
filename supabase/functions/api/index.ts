@@ -9,7 +9,7 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
 }
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -71,25 +71,30 @@ Deno.serve(async (req) => {
 
       console.log("Fetched reporting line managers:", managers);
       data = managers;
-    } else if (type === "checkEmailExists") {
-      console.log("Checking if email exists...");
-      const { email } = payload;
-
-      const { data: existingEmployee, error } = await supabase
-        .from("employees")
-        .select("id")
-        .eq("email", email)
-        .single();
-
-      if (error && error.code !== "PGRST116") {
-        console.error("Supabase error:", error);
-        throw error;
-      }
-
-      data = { exists: !!existingEmployee };
-      console.log(`Email ${email} exists: ${data.exists}`);
     } else if (type === "createEmployee") {
       console.log("Creating a new employee...");
+
+      // Check if the new employee is supposed to be a CEO
+      if (payload.role === "CEO") {
+        // Check if there's already a CEO in the system
+        const { data: existingCEO, error: ceoCheckError } = await supabase
+          .from("employees")
+          .select("id")
+          .eq("role", "CEO")
+          .single();
+
+        if (ceoCheckError && ceoCheckError.code !== "PGRST116") {
+          console.error("Error checking for existing CEO:", ceoCheckError);
+          throw ceoCheckError;
+        }
+
+        if (existingCEO) {
+          return {
+            error:
+              "A CEO already exists in the system. Only one CEO is allowed.",
+          };
+        }
+      }
 
       // Generate the next employee number
       const { data: maxEmployeeNumber } = await supabase
