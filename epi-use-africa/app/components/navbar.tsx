@@ -1,6 +1,7 @@
-"use client";
-import React, { useState } from "react";
-import { useRouter } from "next/navigation"; // Import the router hook from Next.js
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { useTheme } from "next-themes";
 import {
   Navbar,
   NavbarBrand,
@@ -10,7 +11,6 @@ import {
   NavbarMenuItem,
   NavbarMenu,
   Link,
-  Image,
 } from "@nextui-org/react";
 
 const CustomNavbar = () => {
@@ -20,12 +20,33 @@ const CustomNavbar = () => {
     { name: "About", path: "/about" },
   ];
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  const router = useRouter(); // Get the router instance
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  // Function to handle navigation
   const handleNavigation = (path: string) => {
     router.push(path);
+  };
+
+  const renderLogo = (width: number, height: number) => {
+    if (!mounted) return null;
+
+    const currentTheme = theme === "system" ? resolvedTheme : theme;
+    const logoSrc = currentTheme === "dark" ? "/dark-logo.webp" : "/logo.webp";
+
+    return (
+      <Image
+        src={logoSrc}
+        alt="Project Logo"
+        className="object-contain"
+        width={width}
+        height={height}
+      />
+    );
   };
 
   return (
@@ -35,49 +56,33 @@ const CustomNavbar = () => {
         isMenuOpen={isMenuOpen}
         onMenuOpenChange={setIsMenuOpen}
       >
-        {/* Mobile Menu Toggle */}
-        <NavbarContent
-          className="sm:hidden dark:text-white text-gray-600"
-          justify="start"
-        >
+        {/* Mobile Menu Toggle and Logo */}
+        <NavbarContent className="sm:hidden w-full flex justify-between items-center">
           <NavbarMenuToggle
+            className="text-gray-700 dark:text-white"
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           />
-        </NavbarContent>
 
-        {/* Logo for mobile */}
-        <NavbarContent className="sm:hidden pr-3 justify-center dark:text-white text-gray-600">
-          <NavbarBrand>
-            <div className="relative w-24">
-              <Image
-                src="/logo.png"
-                alt="Project Logo"
-                className="object-contain"
-              />
-            </div>
-          </NavbarBrand>
+          {/* Logo for mobile - aligned to the right */}
+          <div className="relative w-24 ml-auto flex justify-end">
+            {renderLogo(96, 48)}
+          </div>
         </NavbarContent>
 
         {/* Centered Logo and Links for larger screens */}
-        <NavbarContent className="hidden sm:flex flex-1 justify-between items-center dark:text-white text-gray-600">
+        <NavbarContent className="hidden sm:flex flex-1 justify-between items-center">
           <NavbarBrand className="flex-shrink-0">
-            <div className="relative w-32">
-              <Image
-                src="/logo.png"
-                alt="Project Logo"
-                className="object-contain"
-              />
-            </div>
+            {renderLogo(128, 64)}
           </NavbarBrand>
 
           <div className="flex gap-4">
             {menuItems.map((item, index) => (
               <NavbarItem key={`${item.name}-${index}`}>
                 <Link
-                  className="dark:text-white text-gray-600"
+                  className="text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200"
                   href="#"
-                  aria-current={item.path === "/hierarchy" ? "page" : undefined} // Set "Hierarchy" as the active link
-                  onClick={() => handleNavigation(item.path)} // Navigate to the corresponding path
+                  aria-current={item.path === "/hierarchy" ? "page" : undefined}
+                  onClick={() => handleNavigation(item.path)}
                 >
                   {item.name}
                 </Link>
@@ -87,21 +92,14 @@ const CustomNavbar = () => {
         </NavbarContent>
 
         {/* Mobile Dropdown Menu */}
-        <NavbarMenu className="dark:text-white text-gray-600 bg-transparent">
+        <NavbarMenu className="bg-white dark:bg-gray-800 bg-opacity-95 dark:bg-opacity-95">
           {menuItems.map((item, index) => (
             <NavbarMenuItem key={`${item.name}-${index}`}>
               <Link
-                className="w-full dark:text-white text-gray-600"
-                color={
-                  index === 2
-                    ? "warning"
-                    : index === menuItems.length - 1
-                    ? "danger"
-                    : "foreground"
-                }
+                className="w-full text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200"
                 href="#"
                 size="lg"
-                onClick={() => handleNavigation(item.path)} // Navigate to the corresponding path
+                onClick={() => handleNavigation(item.path)}
               >
                 {item.name}
               </Link>
