@@ -1,5 +1,7 @@
+"use client"; // Ensures this component is only rendered on the client side
+
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 import {
@@ -15,12 +17,15 @@ import {
 
 const CustomNavbar = () => {
   const menuItems = [
+    { name: "Landing", path: "/" },
     { name: "Home", path: "/home" },
     { name: "Hierarchy", path: "/hierarchy" },
     { name: "About", path: "/about" },
   ];
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const { theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -48,6 +53,8 @@ const CustomNavbar = () => {
       />
     );
   };
+
+  if (!mounted) return null; // Ensure pathname is available after mounting
 
   return (
     <>
@@ -79,9 +86,13 @@ const CustomNavbar = () => {
             {menuItems.map((item, index) => (
               <NavbarItem key={`${item.name}-${index}`}>
                 <Link
-                  className="text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200"
+                  className={`text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 ${
+                    pathname === item.path
+                      ? "border-b-2 border-gray-900 dark:border-gray-200"
+                      : ""
+                  }`}
                   href="#"
-                  aria-current={item.path === "/hierarchy" ? "page" : undefined}
+                  aria-current={item.path === pathname ? "page" : undefined}
                   onClick={() => handleNavigation(item.path)}
                 >
                   {item.name}
@@ -96,7 +107,11 @@ const CustomNavbar = () => {
           {menuItems.map((item, index) => (
             <NavbarMenuItem key={`${item.name}-${index}`}>
               <Link
-                className="w-full text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200"
+                className={`w-full text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200 ${
+                  pathname === item.path
+                    ? "border-b-2 border-gray-900 dark:border-gray-200"
+                    : ""
+                }`}
                 href="#"
                 size="lg"
                 onClick={() => handleNavigation(item.path)}

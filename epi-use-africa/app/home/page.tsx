@@ -9,9 +9,7 @@ import {
   Card,
   CardHeader,
   CardBody,
-  CardFooter,
   Divider,
-  Image,
   Tabs,
   Tab,
 } from "@nextui-org/react";
@@ -22,6 +20,7 @@ import ReportingLineManager from "../components/reportingLineManager";
 import EmployeeHierarchy from "../components/editHierachy";
 import EditUserModal from "../components/editUser";
 import CustomNavbar from "../components/navbar";
+import Spinner from "../components/loading"; // Ensure Spinner is imported
 
 interface Employee {
   id: string;
@@ -162,6 +161,11 @@ export default function App() {
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Add this new state
+    const [reportingLineManager, setReportingLineManager] = useState<
+      string | null
+    >(null);
 
     // Add this new state
     const [reportingManagerMessage, setReportingManagerMessage] = useState("");
@@ -605,12 +609,19 @@ export default function App() {
               <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">
                 Employee Hierarchy
               </h2>
-              <EmployeeHierarchy
-                employees={employees}
-                onEditUser={handleEditUser}
-                expandedByDefault={true}
-                mode="edit" // or "view"
-              />
+              {isLoading ? (
+                <div className="flex justify-center items-center mt-4 mb-4">
+                  {" "}
+                  <Spinner />
+                </div>
+              ) : (
+                <EmployeeHierarchy
+                  employees={employees}
+                  onEditUser={() => {}}
+                  expandedByDefault={true}
+                  mode="edit"
+                />
+              )}
             </div>
           </CardBody>
         </Card>
