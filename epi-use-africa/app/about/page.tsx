@@ -61,7 +61,7 @@ export default function about() {
               rel="noopener noreferrer"
               className="w-full"
             >
-              <Button className="bg-orange-800 w-full">
+              <Button className="bg-red-500 w-full text-white">
                 <FontAwesomeIcon icon={faGithub} size="2x" />
                 <span className="text-lg">GitHub</span>
               </Button>
@@ -79,7 +79,7 @@ export default function about() {
               rel="noopener noreferrer"
               className="w-full"
             >
-              <Button className="bg-blue-600 w-full">
+              <Button className="bg-blue-600 w-full text-white">
                 <FontAwesomeIcon icon={faLinkedin} size="2x" />
                 <span className="text-lg">LinkedIn</span>
               </Button>
