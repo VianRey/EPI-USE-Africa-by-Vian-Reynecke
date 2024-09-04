@@ -695,37 +695,6 @@ export default function App() {
           </div>
         </NavbarContent>
 
-        {/* Avatar and other items aligned to the right */}
-        <NavbarContent
-          justify="end"
-          className="gap-2 dark:text-white text-gray-600"
-        >
-          <NavbarItem className="lg:hidden">
-            {/* Smaller Avatar for small screens */}
-            <Avatar
-              isBordered
-              as="button"
-              className="transition-transform"
-              color="secondary"
-              name="Jason Hughes"
-              size="sm"
-              src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-            />
-          </NavbarItem>
-          <NavbarItem className="hidden lg:flex">
-            {/* Larger Avatar for large screens */}
-            <Avatar
-              isBordered
-              as="button"
-              className="transition-transform"
-              color="secondary"
-              name="Jason Hughes"
-              size="sm"
-              src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-            />
-          </NavbarItem>
-        </NavbarContent>
-
         {/* Mobile Dropdown Menu */}
         <NavbarMenu className="dark:text-white text-gray-600 bg-transparent">
           {menuItems.map((item, index) => (

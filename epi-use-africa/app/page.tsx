@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 export default function Home() {
   const router = useRouter();
   const navigateToEmployeePage = () => {
-    router.push("/employee");
+    router.push("/home");
   };
 
   return (
