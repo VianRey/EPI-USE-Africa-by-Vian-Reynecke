@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.3"
+    "@supabase/supabase-js": "^2.45.3",
+    "use-dark-mode-ts": "^1.0.2"
   }
 }
