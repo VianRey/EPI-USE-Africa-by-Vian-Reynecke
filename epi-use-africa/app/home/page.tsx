@@ -56,6 +56,7 @@ interface Role {
 }
 
 export default function home() {
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
     null
   );
@@ -497,8 +498,6 @@ export default function home() {
   };
 
   const ManageSection = () => {
-    const [searchTerm, setSearchTerm] = useState("");
-
     // Flatten the hierarchy for comprehensive searching
     const flatEmployees = flattenHierarchy(employees);
 
@@ -638,7 +637,7 @@ export default function home() {
                   onEditUser={handleEditUser}
                   expandedByDefault={true}
                   mode="edit"
-                  searchTerm={searchTerm}
+                  searchTerm={searchTerm} // Add this line
                 />
               )}
             </div>
