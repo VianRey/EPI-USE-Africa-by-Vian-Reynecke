@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { useDarkMode } from "use-dark-mode-ts";
+
 import {
   Skeleton,
   Link,
@@ -14,14 +16,32 @@ import {
   Tab,
 } from "@nextui-org/react";
 import { FaUserPlus, FaUsers } from "react-icons/fa";
-import CustomInput from "../components/inputCustom";
-import RoleDropdown from "../components/roleDropdown";
-import ReportingLineManager from "../components/reportingLineManager";
-import EmployeeHierarchy from "../components/editHierachy";
-import EditUserModal from "../components/editUser";
-import CustomNavbar from "../components/navbar";
-import Spinner from "../components/loading"; // Ensure Spinner is imported
+import dynamic from "next/dynamic";
 
+const CustomInput = dynamic(() => import("../components/inputCustom"), {
+  ssr: false,
+});
+const RoleDropdown = dynamic(() => import("../components/roleDropdown"), {
+  ssr: false,
+});
+const ReportingLineManager = dynamic(
+  () => import("../components/reportingLineManager"),
+  {
+    ssr: false,
+  }
+);
+const CustomNavbar = dynamic(() => import("../components/navbar"), {
+  ssr: false,
+});
+const EditUserModal = dynamic(() => import("../components/editUser"), {
+  ssr: false,
+});
+const Spinner = dynamic(() => import("../components/loading"), {
+  ssr: false,
+});
+const EmployeeHierarchy = dynamic(() => import("../components/editHierachy"), {
+  ssr: false,
+});
 interface Employee {
   id: string;
   name: string;
@@ -35,8 +55,12 @@ interface Role {
   role: string;
 }
 
-export default function App() {
-  const isDarkMode = document.documentElement.classList.contains("dark");
+export default function home() {
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
+    null
+  );
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const isDarkMode = useDarkMode();
   const showSuccessToast = (message: string, isDarkMode: boolean) => {
     toast.success(message, {
       duration: 4000,
@@ -61,11 +85,9 @@ export default function App() {
       },
     });
   };
-  const menuItems = ["Home", "Hierarchy", "About Us"];
 
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -476,10 +498,6 @@ export default function App() {
 
   const ManageSection = () => {
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
-      null
-    );
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     // Flatten the hierarchy for comprehensive searching
     const flatEmployees = flattenHierarchy(employees);
@@ -617,9 +635,10 @@ export default function App() {
               ) : (
                 <EmployeeHierarchy
                   employees={employees}
-                  onEditUser={() => {}}
+                  onEditUser={handleEditUser}
                   expandedByDefault={true}
                   mode="edit"
+                  searchTerm={searchTerm} // Add this line
                 />
               )}
             </div>
@@ -647,7 +666,7 @@ export default function App() {
               classNames={{
                 base: "w-full", // Applies to the entire Tabs container
                 tabList:
-                  "flex p-1 h-fit gap-2 items-center flex-nowrap overflow-x-scroll scrollbar-hide dark:bg-gray-900 bg-white rounded-medium border-b-2 border-gray-700", // Copy and adjust styles from the screenshot
+                  "flex p-1 h-fit gap-2 items-center flex-nowrap overflow-x-scroll scrollbar-hide dark:bg-gray-900 bg-white rounded-medium border-b-2 border-gray-200 dark:border-gray-700", // Copy and adjust styles from the screenshot
                 tab: "text-white", // Styles for individual tabs
               }}
               color="primary"

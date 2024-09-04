@@ -159,9 +159,16 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
 
   return (
     <Modal
-      className="bg-gray-800 text-white"
+      className="dark:bg-gray-800 bg-white dark:text-white"
       isOpen={isOpen}
       onOpenChange={onClose}
+      scrollBehavior="inside"
+      classNames={{
+        base: "max-h-[85vh] h-[90vh] sm:h-auto sm:max-h-[85vh]",
+        header: "border-b border-gray-700",
+        body: "py-6",
+        footer: "border-t border-gray-700",
+      }}
     >
       <ModalContent>
         {(onCloseModal) => (
@@ -169,45 +176,44 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
             <ModalHeader className="flex flex-col gap-1">
               Edit Employee
             </ModalHeader>
-            <ModalBody>
-              <div className="flex justify-left mb-4">
+            <ModalBody className="overflow-y-auto">
+              <div className="flex flex-col items-center sm:items-start mb-4">
                 <Avatar
                   src={getGravatarUrl(editedEmployee.email)}
                   alt="User Avatar"
-                  className="relative w-[100px] h-[100px]"
+                  className="w-24 h-24 mb-2"
                 />
+                <p className="text-sm text-gray-400 text-center sm:text-left">
+                  This profile picture is provided by{" "}
+                  <a
+                    href="https://en.gravatar.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400"
+                  >
+                    Gravatar
+                  </a>
+                  . To change your avatar, please update it on Gravatar.
+                </p>
               </div>
-
-              <p className="text-sm text-gray-400 mb-4">
-                This profile picture is provided by{" "}
-                <a
-                  href="https://en.gravatar.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-400"
-                >
-                  Gravatar
-                </a>
-                . To change your avatar, please update it on Gravatar.
-              </p>
 
               <CustomInput
                 label="Name"
                 value={editedEmployee.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                className="mb-2"
+                className="mb-4"
               />
               <CustomInput
                 label="Surname"
                 value={editedEmployee.surname}
                 onChange={(e) => handleInputChange("surname", e.target.value)}
-                className="mb-2"
+                className="mb-4"
               />
               <CustomInput
                 label="Email"
                 value={editedEmployee.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                className="mb-2"
+                className="mb-4"
               />
 
               <RoleDropdown
@@ -215,7 +221,8 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                 placeholder="Select a role"
                 value={editedEmployee.role}
                 onChange={(role) => handleInputChange("role", role)}
-                roles={filteredRoles} // Pass the filtered roles here
+                roles={filteredRoles}
+                className="mb-4"
               />
 
               <ReportingLineManager
@@ -224,34 +231,32 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                 initialSelection={editedEmployee.reporting_line_manager}
                 employees={employees.filter(
                   (emp) => emp.id !== editedEmployee?.id
-                )} // Exclude the current employee
-                disabled={editedEmployee.role === "CEO"} // Disable if role is CEO
+                )}
+                disabled={editedEmployee.role === "CEO"}
               />
             </ModalBody>
             <ModalFooter>
-              <div className="flex flex-col w-full">
-                <Button
-                  className="w-full"
-                  color="danger"
-                  variant="light"
-                  onPress={() => {
-                    onDelete(editedEmployee.id);
-                    onCloseModal();
-                  }}
-                >
-                  Delete User
-                </Button>
-                <Button
-                  className="w-full mt-2"
-                  color="primary"
-                  onPress={() => {
-                    onUpdate(editedEmployee);
-                    onCloseModal();
-                  }}
-                >
-                  Update
-                </Button>
-              </div>
+              <Button
+                className="w-full mb-2"
+                color="danger"
+                variant="light"
+                onPress={() => {
+                  onDelete(editedEmployee.id);
+                  onCloseModal();
+                }}
+              >
+                Delete User
+              </Button>
+              <Button
+                className="w-full"
+                color="primary"
+                onPress={() => {
+                  onUpdate(editedEmployee);
+                  onCloseModal();
+                }}
+              >
+                Update
+              </Button>
             </ModalFooter>
           </>
         )}
