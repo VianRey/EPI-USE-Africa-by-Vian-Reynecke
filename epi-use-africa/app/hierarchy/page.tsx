@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Link, Avatar, Card, CardBody, Image } from "@nextui-org/react";
+import { Card, CardBody, Image } from "@nextui-org/react";
 import CustomNavbar from "../components/navbar";
 import EmployeeHierarchy from "../components/editHierachy";
-const menuItems = ["Home", "Hierarchy", "About Us, "];
+import Spinner from "../components/loading";
 
 interface Employee {
   id: string;
@@ -62,9 +62,10 @@ export default function App() {
                 employees={employees}
                 onEditUser={() => {}}
                 expandedByDefault={true}
+                mode="view"
               />
             ) : (
-              <p>Loading...</p>
+              <Spinner />
             )}
           </CardBody>
         </Card>

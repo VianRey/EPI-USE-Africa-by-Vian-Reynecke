@@ -609,6 +609,7 @@ export default function App() {
                 employees={employees}
                 onEditUser={handleEditUser}
                 expandedByDefault={true}
+                mode="edit" // or "view"
               />
             </div>
           </CardBody>
