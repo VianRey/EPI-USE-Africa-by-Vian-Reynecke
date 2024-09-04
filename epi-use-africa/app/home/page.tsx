@@ -35,7 +35,7 @@ interface Role {
   role: string;
 }
 
-export default function App() {
+export default function HomePage() {
   const isDarkMode = document.documentElement.classList.contains("dark");
   const showSuccessToast = (message: string, isDarkMode: boolean) => {
     toast.success(message, {

@@ -29,7 +29,6 @@ export default function Home() {
             alt="Project Logo"
             width={220}
             height={45}
-            layout="responsive"
             priority
           />
         </div>
