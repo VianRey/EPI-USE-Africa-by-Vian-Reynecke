@@ -3,13 +3,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import {
   Skeleton,
-  Navbar,
-  NavbarBrand,
-  NavbarMenuToggle,
-  NavbarMenuItem,
-  NavbarMenu,
-  NavbarContent,
-  NavbarItem,
   Link,
   Avatar,
   Button,
@@ -28,6 +21,7 @@ import RoleDropdown from "../components/roleDropdown";
 import ReportingLineManager from "../components/reportingLineManager";
 import EmployeeHierarchy from "../components/editHierachy";
 import EditUserModal from "../components/editUser";
+import CustomNavbar from "../components/navbar";
 
 interface Employee {
   id: string;
@@ -632,91 +626,7 @@ export default function App() {
 
   return (
     <>
-      <Navbar
-        className="bg-gradient-to-b dark:bg-gray-800 bg-white shadow-md"
-        isMenuOpen={isMenuOpen}
-        onMenuOpenChange={setIsMenuOpen}
-      >
-        {/* Mobile Menu Toggle */}
-        <NavbarContent
-          className="sm:hidden dark:text-white text-gray-600"
-          justify="start"
-        >
-          <NavbarMenuToggle
-            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-          />
-        </NavbarContent>
-
-        {/* Logo for mobile */}
-        <NavbarContent className="sm:hidden pr-3 justify-center dark:text-white text-gray-600">
-          <NavbarBrand>
-            <div className="relative w-24">
-              <Image
-                src="/logo.png"
-                alt="Project Logo"
-                className="object-contain"
-              />
-            </div>
-          </NavbarBrand>
-        </NavbarContent>
-
-        {/* Centered Logo and Links for larger screens */}
-        <NavbarContent className="hidden sm:flex flex-1 justify-between items-center dark:text-white text-gray-600">
-          <NavbarBrand className="flex-shrink-0">
-            <div className="relative w-32">
-              <Image
-                src="/logo.png"
-                alt="Project Logo"
-                className="object-contain"
-              />
-            </div>
-          </NavbarBrand>
-
-          <div className="flex gap-4">
-            <NavbarItem>
-              <Link className="dark:text-white text-gray-600" href="#">
-                Home
-              </Link>
-            </NavbarItem>
-            <NavbarItem isActive>
-              <Link
-                className="dark:text-white text-gray-600"
-                href="#"
-                aria-current="page"
-              >
-                Hierarchy
-              </Link>
-            </NavbarItem>
-            <NavbarItem>
-              <Link className="dark:text-white text-gray-600" href="#">
-                Integrations
-              </Link>
-            </NavbarItem>
-          </div>
-        </NavbarContent>
-
-        {/* Mobile Dropdown Menu */}
-        <NavbarMenu className="dark:text-white text-gray-600 bg-transparent">
-          {menuItems.map((item, index) => (
-            <NavbarMenuItem key={`${item}-${index}`}>
-              <Link
-                className="w-full dark:text-white text-gray-600"
-                color={
-                  index === 2
-                    ? "warning"
-                    : index === menuItems.length - 1
-                    ? "danger"
-                    : "foreground"
-                }
-                href="#"
-                size="lg"
-              >
-                {item}
-              </Link>
-            </NavbarMenuItem>
-          ))}
-        </NavbarMenu>
-      </Navbar>
+      <CustomNavbar />
       <div className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-b from-gray-100 to-white dark:from-gray-900 dark:to-gray-800 p-4">
         <Card className="w-full max-w-[800px] dark:bg-gray-800 bg-white rounded-xl mb-8 ">
           <CardBody>

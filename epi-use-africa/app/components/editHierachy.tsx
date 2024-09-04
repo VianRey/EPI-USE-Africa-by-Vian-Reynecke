@@ -3,7 +3,6 @@ import { Tree, TreeNode } from "react-organizational-chart";
 import { Avatar, Button } from "@nextui-org/react";
 import md5 from "md5";
 import { FaEdit } from "react-icons/fa";
-import EditUserModal from "../components/editUser";
 
 interface Employee {
   id: string;
@@ -196,11 +195,7 @@ const EmployeeHierarchy: React.FC<EmployeeHierarchyProps> = ({
             lineWidth="2px"
             lineColor="#ccc"
             lineBorderRadius="10px"
-            label={
-              <div className="font-bold text-xl mb-4 text-white">
-                Company Structure
-              </div>
-            }
+            label={""}
           >
             {renderTreeNodes(filteredHierarchy)}
           </Tree>
