@@ -144,6 +144,15 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     [handleInputChange, editedEmployee]
   );
 
+  // Check if a CEO exists and exclude the "CEO" role if a CEO already exists (except if the edited employee is the CEO)
+  const ceoExists = employees.some(
+    (emp) => emp.role === "CEO" && emp.id !== editedEmployee?.id
+  );
+
+  const filteredRoles = ceoExists
+    ? roles.filter((role) => role.role !== "CEO")
+    : roles;
+
   if (!editedEmployee) {
     return null;
   }
@@ -206,7 +215,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                 placeholder="Select a role"
                 value={editedEmployee.role}
                 onChange={(role) => handleInputChange("role", role)}
-                roles={roles}
+                roles={filteredRoles} // Pass the filtered roles here
               />
 
               <ReportingLineManager

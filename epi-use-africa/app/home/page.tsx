@@ -360,8 +360,8 @@ export default function App() {
       }
     };
     return (
-      <Card className="w-full dark:bg-gray-800 bg-white shadow-md rounded-xl">
-        <CardHeader className="flex gap-3">
+      <Card className="w-full dark:bg-gray-800 bg-white  rounded-xl shadow-none ">
+        <CardHeader className="flex gap-3 shadow-transparent ">
           <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
             <FaUserPlus className="text-5xl text-blue-500" />
           </div>
@@ -517,7 +517,7 @@ export default function App() {
 
         if (!response.ok) {
           if (response.status === 400 && result.error) {
-            showErrorToast("An unexpected error occurred.", isDarkMode);
+            showErrorToast("Error: " + `${result.error}`, isDarkMode);
             return;
           }
           throw new Error("Failed to update employee");
@@ -584,7 +584,7 @@ export default function App() {
 
     return (
       <>
-        <Card className="w-full dark:bg-gray-800 bg-white shadow-md rounded-xl">
+        <Card className="w-full dark:bg-gray-800 bg-white  rounded-xl  shadow-none">
           <CardHeader className="flex gap-3">
             <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
               <FaUsers className="text-5xl text-green-500" />
@@ -749,9 +749,19 @@ export default function App() {
         </NavbarMenu>
       </Navbar>
       <div className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-b from-gray-100 to-white dark:from-gray-900 dark:to-gray-800 p-4">
-        <Card className="w-full max-w-[800px] dark:bg-gray-800 bg-white shadow-md rounded-xl mb-8">
+        <Card className="w-full max-w-[800px] dark:bg-gray-800 bg-white rounded-xl mb-8 ">
           <CardBody>
-            <Tabs color="primary" aria-label="CRUD Operations">
+            <Tabs
+              aria-label="CRUD Operations"
+              classNames={{
+                base: "w-full", // Applies to the entire Tabs container
+                tabList:
+                  "flex p-1 h-fit gap-2 items-center flex-nowrap overflow-x-scroll scrollbar-hide dark:bg-gray-900 bg-white rounded-medium border-b-2 border-gray-700", // Copy and adjust styles from the screenshot
+                tab: "text-white", // Styles for individual tabs
+              }}
+              color="primary"
+            >
+              {" "}
               <Tab key="create" title="Create">
                 <CreateSection roles={roles} employees={employees} />
               </Tab>
