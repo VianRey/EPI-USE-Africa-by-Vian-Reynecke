@@ -501,13 +501,6 @@ export default function home() {
     // Flatten the hierarchy for comprehensive searching
     const flatEmployees = flattenHierarchy(employees);
 
-    // Apply the search on the flattened list
-    const filteredEmployees = flatEmployees.filter((employee) =>
-      `${employee.name} ${employee.surname} ${employee.role}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-    );
-
     const handleEditUser = (employee: Employee) => {
       console.log("Edit button clicked for employee:", employee);
       setSelectedEmployee(employee);

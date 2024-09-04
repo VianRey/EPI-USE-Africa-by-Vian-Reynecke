@@ -69,6 +69,7 @@ export default function HierarchyPage() {
                 onEditUser={() => {}}
                 expandedByDefault={true}
                 mode="view"
+                searchTerm={""} // Add this line
               />
             ) : (
               <Spinner />
