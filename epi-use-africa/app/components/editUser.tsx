@@ -164,7 +164,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
       onOpenChange={onClose}
       scrollBehavior="inside"
       classNames={{
-        base: "max-h-[95vh] h-[95vh] sm:h-auto sm:max-h-[95vh]",
+        base: "max-h-[85vh] h-[90vh] sm:h-auto sm:max-h-[85vh]",
         header: "border-b border-gray-700",
         body: "py-6",
         footer: "border-t border-gray-700",
