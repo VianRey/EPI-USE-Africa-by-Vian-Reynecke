@@ -21,6 +21,13 @@ import dynamic from "next/dynamic";
 const CustomInput = dynamic(() => import("../components/inputCustom"), {
   ssr: false,
 });
+
+const EmployeeListView = dynamic(
+  () => import("../components/employeeListView"),
+  {
+    ssr: false,
+  }
+);
 const RoleDropdown = dynamic(() => import("../components/roleDropdown"), {
   ssr: false,
 });
@@ -532,12 +539,16 @@ export default function home() {
         const result = await response.json();
 
         if (!response.ok) {
-          if (response.status === 400 && result.error) {
-            showErrorToast("Error: " + `${result.error}`, isDarkMode);
+          if (response.status === 400 && result.code === "DUPLICATE_EMAIL") {
+            showErrorToast(
+              "This email is already in use by another employee.",
+              isDarkMode
+            );
             return;
           }
-          throw new Error("Failed to update employee");
+          throw new Error(result.error || "Failed to update employee");
         }
+
         showSuccessToast("Successfully updated employee", isDarkMode);
 
         console.log("Employee updated successfully:", result);
@@ -551,11 +562,7 @@ export default function home() {
 
         setIsEditModalOpen(false);
       } catch (error) {
-        console.error("Error updating employee:", error);
-        showErrorToast(
-          "Error updating employee error:" + `${error}`,
-          isDarkMode
-        );
+        showErrorToast("Error updating employee: " + `${error}`, isDarkMode);
       }
     };
 
@@ -600,7 +607,7 @@ export default function home() {
 
     return (
       <>
-        <Card className="w-full dark:bg-gray-800 bg-white  rounded-xl  shadow-none">
+        <Card className="w-full dark:bg-gray-800 bg-white rounded-xl shadow-none">
           <CardHeader className="flex gap-3">
             <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
               <FaUsers className="text-5xl text-green-500" />
@@ -616,32 +623,57 @@ export default function home() {
           </CardHeader>
           <Divider />
           <CardBody className="dark:text-gray-300 text-gray-700 p-3">
-            <CustomInput
-              label="Search employees"
-              placeholder="Enter name, surname, or role"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="mb-4"
-            />
-            <div className="mt-4">
-              <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">
-                Employee Hierarchy
-              </h2>
-              {isLoading ? (
-                <div className="flex justify-center items-center mt-4 mb-4">
-                  {" "}
-                  <Spinner />
-                </div>
-              ) : (
-                <EmployeeHierarchy
-                  employees={employees}
-                  onEditUser={handleEditUser}
-                  expandedByDefault={true}
-                  mode="edit"
-                  searchTerm={searchTerm} // Add this line
+            <Tabs
+              aria-label="View"
+              classNames={{
+                base: "w-full mb-3",
+                tabList:
+                  "flex p-1 h-fit gap-2 items-center flex-nowrap overflow-x-scroll scrollbar-hide dark:bg-gray-900 bg-white rounded-medium border-b-2 border-gray-200 dark:border-gray-700",
+                tab: "text-white",
+              }}
+              color="primary"
+            >
+              <Tab key="Hierarchy" title="Hierarchy View">
+                <CustomInput
+                  label="Search employees"
+                  placeholder="Enter name, surname, or role"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="mb-4"
                 />
-              )}
-            </div>
+                <div className="mt-4">
+                  <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">
+                    Employee Hierarchy
+                  </h2>
+                  {isLoading ? (
+                    <div className="flex justify-center items-center mt-4 mb-4">
+                      <Spinner />
+                    </div>
+                  ) : (
+                    <EmployeeHierarchy
+                      employees={employees}
+                      onEditUser={handleEditUser}
+                      expandedByDefault={true}
+                      mode="edit"
+                      searchTerm={searchTerm}
+                    />
+                  )}
+                </div>
+              </Tab>
+              <Tab key="List" title="List View (Sort + Filter)">
+                {isLoading ? (
+                  <div className="flex justify-center items-center mt-4 mb-4">
+                    <Spinner />
+                  </div>
+                ) : (
+                  <EmployeeListView
+                    employees={employees}
+                    onEditUser={handleEditUser}
+                    roles={roles}
+                  />
+                )}
+              </Tab>
+            </Tabs>
           </CardBody>
         </Card>
         <EditUserModal
@@ -658,30 +690,29 @@ export default function home() {
   return (
     <>
       <CustomNavbar />
-      <div className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-b from-gray-100 to-white dark:from-gray-900 dark:to-gray-800 p-4">
-        <Card className="w-full max-w-[800px] dark:bg-gray-800 bg-white rounded-xl mb-8 ">
+      <div className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-b bg-gray-100 dark:bg-gray-900 p-4">
+        <Card className="w-full  lg:w-[auto] lg:min-w-[800px] dark:bg-gray-800 bg-white rounded-xl shadow-none h-auto">
           <CardBody>
             <Tabs
               aria-label="CRUD Operations"
               classNames={{
-                base: "w-full", // Applies to the entire Tabs container
+                base: "w-full",
                 tabList:
-                  "flex p-1 h-fit gap-2 items-center flex-nowrap overflow-x-scroll scrollbar-hide dark:bg-gray-900 bg-white rounded-medium border-b-2 border-gray-200 dark:border-gray-700", // Copy and adjust styles from the screenshot
-                tab: "text-white", // Styles for individual tabs
+                  "flex p-1 h-fit gap-2 items-center flex-nowrap overflow-x-scroll scrollbar-hide dark:bg-gray-900 bg-white rounded-medium border-b-2 border-gray-200 dark:border-gray-700",
+                tab: "text-white",
               }}
               color="primary"
             >
-              {" "}
               <Tab key="create" title="Create">
                 <CreateSection roles={roles} employees={employees} />
               </Tab>
-              <Tab key="manage" title="Manage">
+              <Tab key="Manage" title="Manage">
                 <ManageSection />
               </Tab>
             </Tabs>
           </CardBody>
         </Card>
-      </div>{" "}
+      </div>
       <Toaster />
     </>
   );
