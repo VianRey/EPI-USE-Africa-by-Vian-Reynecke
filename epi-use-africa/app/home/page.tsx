@@ -666,7 +666,7 @@ export default function home() {
               classNames={{
                 base: "w-full", // Applies to the entire Tabs container
                 tabList:
-                  "flex p-1 h-fit gap-2 items-center flex-nowrap overflow-x-scroll scrollbar-hide dark:bg-gray-900 bg-white rounded-medium border-b-2 border-gray-700", // Copy and adjust styles from the screenshot
+                  "flex p-1 h-fit gap-2 items-center flex-nowrap overflow-x-scroll scrollbar-hide dark:bg-gray-900 bg-white rounded-medium border-b-2 border-gray-200 dark:border-gray-700", // Copy and adjust styles from the screenshot
                 tab: "text-white", // Styles for individual tabs
               }}
               color="primary"

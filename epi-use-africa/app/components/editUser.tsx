@@ -159,7 +159,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
 
   return (
     <Modal
-      className="bg-gray-800 text-white"
+      className="dark:bg-gray-800 bg-white dark:text-white"
       isOpen={isOpen}
       onOpenChange={onClose}
     >

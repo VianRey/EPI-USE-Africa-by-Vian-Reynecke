@@ -41,7 +41,7 @@ const CustomNavbar = () => {
     if (!mounted) return null;
 
     const currentTheme = theme === "system" ? resolvedTheme : theme;
-    const logoSrc = currentTheme === "dark" ? "/dark-logo.webp" : "/logo.webp";
+    const logoSrc = currentTheme === "dark" ? "/dark-logo.webp" : "/logo.png";
 
     return (
       <Image
