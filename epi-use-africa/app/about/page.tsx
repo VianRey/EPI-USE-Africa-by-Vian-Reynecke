@@ -33,19 +33,16 @@ export default function AboutPage() {
                   transition={{ duration: 0.6 }}
                 />
                 <p className="text-gray-900 dark:text-gray-100 mb-4 text-lg">
-                  Hello! I'm Vian Reynecke, a final-year Computer Science
-                  student at the University of Pretoria and a current partner at
-                  BlendWeb. With a passion for technology and innovation, I'm
-                  excited about advancing my academic journey through the honors
-                  program. I'm actively seeking job shadowing or internship
-                  opportunities for 2025 to gain hands-on experience and
-                  contribute to exciting projects.
+                  Hi, I'm Vian Reynecke, a final-year Computer Science student
+                  at the University of Pretoria and a partner at BlendWeb. I’m
+                  passionate about technology and eager to pursue an honors
+                  program. I'm also looking for job shadowing or internship
+                  opportunities in 2025.
                 </p>
                 <p className="text-gray-700 dark:text-gray-300 mb-4">
-                  When I'm not coding, you can find me exploring new tech
-                  trends, DJing Afro Tech, or designing creative solutions.
-                  Let's connect and explore how we can work together to make an
-                  impact!
+                  Outside of coding, I enjoy exploring tech trends, DJing Afro
+                  Tech, and designing creative solutions. Let’s connect and make
+                  an impact together!
                 </p>
               </div>
             </CardBody>
@@ -57,36 +54,48 @@ export default function AboutPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <Button href="https://github.com/VianRey" className="bg-orange-800">
-              <FontAwesomeIcon icon={faGithub} size="2x" />
-              <span className="text-lg">GitHub</span>
-            </Button>
+            <a
+              href="https://github.com/VianRey"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button className="bg-orange-800">
+                <FontAwesomeIcon icon={faGithub} size="2x" />
+                <span className="text-lg">GitHub</span>
+              </Button>
+            </a>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            <Button
+            <a
               href="https://www.linkedin.com/in/vian-reynecke-a80604282/"
-              className="bg-blue-600"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <FontAwesomeIcon icon={faLinkedin} size="2x" />
-              <span className="text-lg">LinkedIn</span>
-            </Button>
+              <Button className="bg-blue-600">
+                <FontAwesomeIcon icon={faLinkedin} size="2x" />
+                <span className="text-lg">LinkedIn</span>
+              </Button>
+            </a>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.8 }}
           >
-            <Button
+            <a
               href="https://blendweb.co.za"
-              className="dark:bg-white dark:text-gray-800 bg-gray-800 text-white"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <FontAwesomeIcon icon={faGlobe} size="2x" />
-              <span className="text-lg">BlendWeb</span>
-            </Button>
+              <Button className="dark:bg-white dark:text-gray-800 bg-gray-800 text-white">
+                <FontAwesomeIcon icon={faGlobe} size="2x" />
+                <span className="text-lg">BlendWeb</span>
+              </Button>
+            </a>
           </motion.div>
         </div>
       </div>

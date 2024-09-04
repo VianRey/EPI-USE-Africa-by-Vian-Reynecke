@@ -13,7 +13,7 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-8 bg-background text-foreground">
-      <header className="w-full py-6 px-4 bg-background shadow-md rounded-lg mb-8">
+      <header className="w-full py-6 px-4 bg-background border  shadow-md rounded-lg mb-8">
         <h1 className="text-4xl font-bold text-center text-foreground">
           Employee Hierarchy Management System
         </h1>
