@@ -74,7 +74,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
         data = { exists: !!emailData };
         break;
       }
-
       case "createEmployee": {
         console.log("Creating a new employee...");
         if (payload.role === "CEO") {
@@ -145,6 +144,36 @@ Deno.serve(async (req: Request): Promise<Response> => {
       case "updateEmployee": {
         console.log("Attempting to update an employee...");
         const { id, ...updates } = payload;
+
+        // Check for duplicate email
+        if (updates.email) {
+          const { data: existingEmail, error: emailCheckError } = await supabase
+            .from("employees")
+            .select("id")
+            .eq("email", updates.email)
+            .neq("id", id)
+            .single();
+
+          if (emailCheckError && emailCheckError.code !== "PGRST116") {
+            throw emailCheckError;
+          }
+
+          if (existingEmail) {
+            return new Response(
+              JSON.stringify({
+                error: "Email already exists",
+                code: "DUPLICATE_EMAIL",
+              }),
+              {
+                status: 400,
+                headers: {
+                  "Content-Type": "application/json",
+                  "Access-Control-Allow-Origin": "*",
+                },
+              },
+            );
+          }
+        }
 
         const { data: currentEmployee, error: fetchError } = await supabase
           .from("employees")

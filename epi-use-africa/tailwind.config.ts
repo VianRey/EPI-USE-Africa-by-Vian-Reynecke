@@ -26,6 +26,7 @@ const config: Config = {
       themes: {
         dark: {
           colors: {
+            content1: "#111827",
             background: "#1f2937", // Dark mode background
             foreground: "#FFFFFF", // Dark mode text
             primary: {
@@ -37,6 +38,7 @@ const config: Config = {
         },
         light: {
           colors: {
+            content1: "#FFFFFF",
             background: "#FFFFFF", // Light mode background
             foreground: "#1f2937", // Light mode text
             primary: {

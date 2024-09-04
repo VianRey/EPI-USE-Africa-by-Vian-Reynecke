@@ -13,7 +13,6 @@ import CustomInput from "../components/inputCustom";
 import RoleDropdown from "../components/roleDropdown";
 import ReportingLineManager from "../components/reportingLineManager";
 
-// Updated Employee interface
 export interface Employee {
   id: string;
   name: string;
@@ -48,6 +47,13 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState({
+    name: "",
+    surname: "",
+    email: "",
+    role: "",
+    reporting_line_manager: "",
+  });
 
   const fetchEmployees = useCallback(async () => {
     try {
@@ -119,18 +125,64 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
   }, []);
 
+  const validateInputs = () => {
+    const newErrors = {
+      name: "",
+      surname: "",
+      email: "",
+      role: "",
+      reporting_line_manager: "",
+    };
+
+    let isValid = true;
+
+    if (!editedEmployee) return false;
+
+    if (!editedEmployee.name.trim()) {
+      newErrors.name = "Name is required";
+      isValid = false;
+    }
+    if (!editedEmployee.surname.trim()) {
+      newErrors.surname = "Surname is required";
+      isValid = false;
+    }
+    if (!editedEmployee.email.trim()) {
+      newErrors.email = "Email is required";
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(editedEmployee.email)) {
+      newErrors.email = "Email is invalid";
+      isValid = false;
+    }
+    if (!editedEmployee.role) {
+      newErrors.role = "Role is required";
+      isValid = false;
+    }
+    if (
+      editedEmployee.role !== "CEO" &&
+      !editedEmployee.reporting_line_manager
+    ) {
+      newErrors.reporting_line_manager = "Reporting Line Manager is required";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleInputChange = useCallback(
     (field: keyof Employee, value: string | null) => {
       setEditedEmployee((prev) => {
         if (!prev) return null;
 
-        // If the role is changed to CEO, set the reporting line manager to null
         if (field === "role" && value === "CEO") {
           return { ...prev, [field]: value, reporting_line_manager: null };
         }
 
         return { ...prev, [field]: value };
       });
+
+      // Clear the error for this field when the user starts typing
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     },
     []
   );
@@ -143,6 +195,13 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     },
     [handleInputChange, editedEmployee]
   );
+
+  const handleUpdate = () => {
+    if (validateInputs() && editedEmployee) {
+      onUpdate(editedEmployee);
+      onClose();
+    }
+  };
 
   // Check if a CEO exists and exclude the "CEO" role if a CEO already exists (except if the edited employee is the CEO)
   const ceoExists = employees.some(
@@ -202,18 +261,21 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                 value={editedEmployee.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 className="mb-4"
+                errorMessage={errors.name}
               />
               <CustomInput
                 label="Surname"
                 value={editedEmployee.surname}
                 onChange={(e) => handleInputChange("surname", e.target.value)}
                 className="mb-4"
+                errorMessage={errors.surname}
               />
               <CustomInput
                 label="Email"
                 value={editedEmployee.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
                 className="mb-4"
+                errorMessage={errors.email}
               />
 
               <RoleDropdown
@@ -223,6 +285,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                 onChange={(role) => handleInputChange("role", role)}
                 roles={filteredRoles}
                 className="mb-4"
+                errorMessage={errors.role}
               />
 
               <ReportingLineManager
@@ -233,6 +296,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                   (emp) => emp.id !== editedEmployee?.id
                 )}
                 disabled={editedEmployee.role === "CEO"}
+                errorMessage={errors.reporting_line_manager}
               />
             </ModalBody>
             <ModalFooter>
@@ -247,14 +311,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
               >
                 Delete User
               </Button>
-              <Button
-                className="w-full"
-                color="primary"
-                onPress={() => {
-                  onUpdate(editedEmployee);
-                  onCloseModal();
-                }}
-              >
+              <Button className="w-full" color="primary" onPress={handleUpdate}>
                 Update
               </Button>
             </ModalFooter>
