@@ -26,156 +26,198 @@ Deno.serve(async (req: Request): Promise<Response> => {
     console.log("Request type:", type);
 
     let data;
-    if (type === "getEmployees") {
-      console.log("Fetching employees...");
-      const { data: employees, error } = await supabase
-        .from("employees")
-        .select(
-          "id, name, surname, birth_date, employee_number, salary, role, reporting_line_manager, email, created_at, updated_at",
-        );
+    switch (type) {
+      case "getEmployees": {
+        console.log("Fetching employees...");
+        const { data: employees, error: employeesError } = await supabase
+          .from("employees")
+          .select(
+            "id, name, surname, birth_date, employee_number, salary, role, reporting_line_manager, email, created_at, updated_at",
+          );
 
-      if (error) {
-        console.error("Supabase error:", error);
-        throw error;
+        if (employeesError) throw employeesError;
+        data = employees;
+        break;
       }
+      case "getRole": {
+        console.log("Fetching all roles from the view...");
+        const { data: roles, error: rolesError } = await supabase
+          .from("all_roles")
+          .select("*")
+          .order("role");
 
-      console.log("Fetched employees:", employees);
-      data = employees;
-    } else if (type === "getRole") {
-      console.log("Fetching all roles from the view...");
-      const { data: roles, error } = await supabase
-        .from("all_roles") // Query the view instead of the employees table
-        .select("*") // Select all columns from the view
-        .order("role");
-
-      if (error) {
-        console.error("Supabase error:", error);
-        throw error;
+        if (rolesError) throw rolesError;
+        data = roles;
+        break;
       }
+      case "getReportingLineManager": {
+        console.log("Fetching reporting line managers...");
+        const { data: managers, error: managersError } = await supabase
+          .from("employees")
+          .select("id, name, surname, role")
+          .order("name");
 
-      // The roles are already unique in the view, so no need to filter them again
-      data = roles;
-
-      console.log("Fetched all roles from the view:", data);
-    } else if (type === "getReportingLineManager") {
-      console.log("Fetching reporting line managers...");
-      const { data: managers, error } = await supabase
-        .from("employees")
-        .select("id, name, surname, role")
-        .order("name");
-
-      if (error) {
-        console.error("Supabase error:", error);
-        throw error;
+        if (managersError) throw managersError;
+        data = managers;
+        break;
       }
-
-      console.log("Fetched reporting line managers:", managers);
-      data = managers;
-    } else if (type === "createEmployee") {
-      console.log("Creating a new employee...");
-
-      // Check if the new employee is supposed to be a CEO
-      if (payload.role === "CEO") {
-        // Check if there's already a CEO in the system
-        const { data: existingCEO, error: ceoCheckError } = await supabase
+      case "checkEmailExists": {
+        console.log("Checking if email exists...");
+        const { email } = payload;
+        const { data: emailData, error: emailError } = await supabase
           .from("employees")
           .select("id")
-          .eq("role", "CEO")
+          .eq("email", email)
           .single();
 
-        if (ceoCheckError && ceoCheckError.code !== "PGRST116") {
-          console.error("Error checking for existing CEO:", ceoCheckError);
-          throw ceoCheckError;
+        if (emailError && emailError.code !== "PGRST116") throw emailError;
+        data = { exists: !!emailData };
+        break;
+      }
+
+      case "createEmployee": {
+        console.log("Creating a new employee...");
+        if (payload.role === "CEO") {
+          const { data: existingCEO, error: ceoCheckError } = await supabase
+            .from("employees")
+            .select("id")
+            .eq("role", "CEO")
+            .single();
+
+          if (ceoCheckError && ceoCheckError.code !== "PGRST116") {
+            throw ceoCheckError;
+          }
+
+          if (existingCEO) {
+            return new Response(
+              JSON.stringify({
+                error:
+                  "A CEO already exists in the system. Only one CEO is allowed.",
+              }),
+              {
+                status: 400,
+                headers: {
+                  "Content-Type": "application/json",
+                  "Access-Control-Allow-Origin": "*",
+                },
+              },
+            );
+          }
         }
 
-        if (existingCEO) {
-          return {
-            error:
-              "A CEO already exists in the system. Only one CEO is allowed.",
-          };
+        const { data: maxEmployeeNumber } = await supabase
+          .from("employees")
+          .select("employee_number")
+          .order("employee_number", { ascending: false })
+          .limit(1)
+          .single();
+
+        let nextEmployeeNumber = "EMP001";
+        if (maxEmployeeNumber && maxEmployeeNumber.employee_number) {
+          const lastNumber = parseInt(
+            maxEmployeeNumber.employee_number.replace("EMP", ""),
+            10,
+          );
+          nextEmployeeNumber = `EMP${String(lastNumber + 1).padStart(3, "0")}`;
         }
+
+        const newEmployeeData = {
+          name: payload.name,
+          surname: payload.surname,
+          birth_date: payload.birthDate,
+          employee_number: nextEmployeeNumber,
+          salary: payload.salary,
+          role: payload.role,
+          email: payload.email,
+          reporting_line_manager: payload.reporting_line_manager,
+        };
+
+        const { data: employee, error: createError } = await supabase
+          .from("employees")
+          .insert([newEmployeeData])
+          .select("*")
+          .single();
+
+        if (createError) throw createError;
+        data = employee;
+        break;
       }
+      case "updateEmployee": {
+        console.log("Attempting to update an employee...");
+        const { id, ...updates } = payload;
 
-      // Generate the next employee number
-      const { data: maxEmployeeNumber } = await supabase
-        .from("employees")
-        .select("employee_number")
-        .order("employee_number", { ascending: false })
-        .limit(1)
-        .single();
+        const { data: currentEmployee, error: fetchError } = await supabase
+          .from("employees")
+          .select("role")
+          .eq("id", id)
+          .single();
 
-      let nextEmployeeNumber = "EMP001";
-      if (maxEmployeeNumber && maxEmployeeNumber.employee_number) {
-        const lastNumber = parseInt(
-          maxEmployeeNumber.employee_number.replace("EMP", ""),
-          10,
-        );
-        nextEmployeeNumber = `EMP${String(lastNumber + 1).padStart(3, "0")}`;
+        if (fetchError) throw fetchError;
+
+        if (updates.role && updates.role !== currentEmployee.role) {
+          const { data: dependentEmployees, error: dependencyError } =
+            await supabase
+              .from("employees")
+              .select("id")
+              .eq("reporting_line_manager", currentEmployee.role);
+
+          if (dependencyError) throw dependencyError;
+
+          if (dependentEmployees && dependentEmployees.length > 0) {
+            return new Response(
+              JSON.stringify({
+                error:
+                  "Cannot update employee role. There are still employees reporting to the current role.",
+                dependentCount: dependentEmployees.length,
+              }),
+              {
+                status: 400,
+                headers: {
+                  "Content-Type": "application/json",
+                  "Access-Control-Allow-Origin": "*",
+                },
+              },
+            );
+          }
+        }
+
+        const { data: updatedEmployee, error: updateError } = await supabase
+          .from("employees")
+          .update(updates)
+          .eq("id", id)
+          .select("*")
+          .single();
+
+        if (updateError) throw updateError;
+        data = updatedEmployee;
+        break;
       }
+      case "deleteEmployee": {
+        console.log("Attempting to delete an employee...");
+        const { id: deleteId } = payload;
 
-      const newEmployeeData = {
-        name: payload.name,
-        surname: payload.surname,
-        birth_date: payload.birthDate,
-        employee_number: nextEmployeeNumber,
-        salary: payload.salary,
-        role: payload.role,
-        email: payload.email,
-        reporting_line_manager: payload.reporting_line_manager,
-      };
+        const { data: employeeToDelete, error: fetchDeleteError } =
+          await supabase
+            .from("employees")
+            .select("role")
+            .eq("id", deleteId)
+            .single();
 
-      const { data: employee, error } = await supabase
-        .from("employees")
-        .insert([newEmployeeData])
-        .select("*")
-        .single();
+        if (fetchDeleteError) throw fetchDeleteError;
 
-      if (error) {
-        console.error("Supabase error:", error);
-        throw error;
-      }
-
-      console.log("Created employee:", employee);
-      data = employee;
-    } else if (type === "updateEmployee") {
-      console.log("Attempting to update an employee...");
-      const { id, ...updates } = payload;
-
-      // First, get the current role of the employee we're trying to update
-      const { data: currentEmployee, error: fetchError } = await supabase
-        .from("employees")
-        .select("role")
-        .eq("id", id)
-        .single();
-
-      if (fetchError) {
-        console.error("Error fetching employee to update:", fetchError);
-        throw fetchError;
-      }
-
-      // If the role is being updated, check for dependencies
-      if (updates.role && updates.role !== currentEmployee.role) {
-        // Check if any employees are reporting to the current role
-        const { data: dependentEmployees, error: dependencyError } =
+        const { data: dependentEmployees, error: dependencyDeleteError } =
           await supabase
             .from("employees")
             .select("id")
-            .eq("reporting_line_manager", currentEmployee.role);
+            .eq("reporting_line_manager", employeeToDelete.role);
 
-        if (dependencyError) {
-          console.error(
-            "Error checking for dependent employees:",
-            dependencyError,
-          );
-          throw dependencyError;
-        }
+        if (dependencyDeleteError) throw dependencyDeleteError;
 
         if (dependentEmployees && dependentEmployees.length > 0) {
-          console.log("Cannot update: Employees are reporting to this role");
           return new Response(
             JSON.stringify({
               error:
-                "Cannot update employee role. There are still employees reporting to the current role.",
+                "Cannot delete employee. There are still employees reporting to this role.",
               dependentCount: dependentEmployees.length,
             }),
             {
@@ -187,62 +229,21 @@ Deno.serve(async (req: Request): Promise<Response> => {
             },
           );
         }
-      }
 
-      // If no dependents or role is not being updated, proceed with the update
-      const { data: updatedEmployee, error: updateError } = await supabase
-        .from("employees")
-        .update(updates)
-        .eq("id", id)
-        .select("*")
-        .single();
-
-      if (updateError) {
-        console.error("Error updating employee:", updateError);
-        throw updateError;
-      }
-
-      console.log("Updated employee:", updatedEmployee);
-      data = updatedEmployee;
-    } else if (type === "deleteEmployee") {
-      console.log("Attempting to delete an employee...");
-      const { id } = payload;
-
-      // First, get the role of the employee we're trying to delete
-      const { data: employeeToDelete, error: fetchError } = await supabase
-        .from("employees")
-        .select("role")
-        .eq("id", id)
-        .single();
-
-      if (fetchError) {
-        console.error("Error fetching employee to delete:", fetchError);
-        throw fetchError;
-      }
-
-      // Check if any employees are reporting to this role
-      const { data: dependentEmployees, error: dependencyError } =
-        await supabase
+        const { data: deletedEmployee, error: deleteError } = await supabase
           .from("employees")
-          .select("id")
-          .eq("reporting_line_manager", employeeToDelete.role);
+          .delete()
+          .eq("id", deleteId)
+          .select("*")
+          .single();
 
-      if (dependencyError) {
-        console.error(
-          "Error checking for dependent employees:",
-          dependencyError,
-        );
-        throw dependencyError;
+        if (deleteError) throw deleteError;
+        data = deletedEmployee;
+        break;
       }
-
-      if (dependentEmployees && dependentEmployees.length > 0) {
-        console.log("Cannot delete: Employees are reporting to this role");
+      default:
         return new Response(
-          JSON.stringify({
-            error:
-              "Cannot delete employee. There are still employees reporting to this role.",
-            dependentCount: dependentEmployees.length,
-          }),
+          JSON.stringify({ error: "Unsupported request type" }),
           {
             status: 400,
             headers: {
@@ -251,24 +252,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
             },
           },
         );
-      }
-
-      // If no dependents, proceed with deletion
-      const { data: deletedEmployee, error: deleteError } = await supabase
-        .from("employees")
-        .delete()
-        .eq("id", id)
-        .select("*")
-        .single();
-
-      if (deleteError) {
-        console.error("Error deleting employee:", deleteError);
-        throw deleteError;
-      }
-
-      console.log("Deleted employee:", deletedEmployee);
-      data = deletedEmployee;
     }
+
     return new Response(JSON.stringify(data), {
       headers: {
         "Content-Type": "application/json",

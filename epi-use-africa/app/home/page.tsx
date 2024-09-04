@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
-import { toast } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import {
   Skeleton,
   Navbar,
@@ -43,6 +43,31 @@ interface Role {
 }
 
 export default function App() {
+  const isDarkMode = document.documentElement.classList.contains("dark");
+  const showSuccessToast = (message: string, isDarkMode: boolean) => {
+    toast.success(message, {
+      duration: 4000,
+      position: "top-center",
+      style: {
+        border: isDarkMode ? "1px solid #9ca3af" : "1px solid #d1d5db",
+        padding: "16px",
+        color: isDarkMode ? "#ffffff" : "#111827",
+        background: isDarkMode ? "#111827" : "#ffffff",
+      },
+    });
+  };
+  const showErrorToast = (message: string, isDarkMode: boolean) => {
+    toast.error(message, {
+      duration: 4000,
+      position: "top-center",
+      style: {
+        border: isDarkMode ? "1px solid #9ca3af" : "1px solid #d1d5db",
+        padding: "16px",
+        color: isDarkMode ? "#ffffff" : "#111827",
+        background: isDarkMode ? "#111827" : "#ffffff",
+      },
+    });
+  };
   const menuItems = ["Home", "Hierarchy", "About Us"];
 
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -256,9 +281,12 @@ export default function App() {
             ...prev,
             email: "This email already exists",
           }));
-          toast.error(
-            "An employee with this email address already exists in the system."
+
+          showErrorToast(
+            "An employee with this email address already exists in the system.",
+            isDarkMode
           );
+
           return;
         }
 
@@ -275,27 +303,30 @@ export default function App() {
           }
         );
 
-        if (!createResponse.ok) {
-          throw new Error("Failed to create employee");
-        }
-
         const result = await createResponse.json();
 
-        if (result.error) {
+        if (!createResponse.ok) {
+          console.error("Error response:", result);
           if (
             result.error ===
             "A CEO already exists in the system. Only one CEO is allowed."
           ) {
-            toast.error(
-              "A CEO already exists in the system. Only one CEO is allowed."
+            showErrorToast(
+              "A CEO already exists in the system. Only one CEO is allowed.",
+              isDarkMode
             );
           } else {
-            toast.error(result.error);
+            showErrorToast(
+              result.error || "Failed to create employee",
+              isDarkMode
+            );
           }
           return;
         }
 
         console.log("Employee created successfully:", result);
+
+        // Reset form and show success message
 
         // Reset the form after a successful creation
         setNewEmployee({
@@ -317,20 +348,20 @@ export default function App() {
           reporting_line_manager: "",
         });
 
-        // Success message
-        toast.success(
-          `${result.name} ${result.surname} has been successfully added to the system.`
+        showSuccessToast(
+          `${result.name} ${result.surname} has been successfully added to the system.`,
+          isDarkMode
         );
       } catch (error) {
         console.error("Error creating employee:", error);
-        toast.error(
-          "An unexpected error occurred while creating the employee. Please try again."
+        showErrorToast(
+          "An unexpected error occurred while creating the employee. Please try again.",
+          isDarkMode
         );
       } finally {
         setIsSubmitting(false);
       }
     };
-
     return (
       <Card className="w-full dark:bg-gray-800 bg-white shadow-md rounded-xl">
         <CardHeader className="flex gap-3">
@@ -489,11 +520,12 @@ export default function App() {
 
         if (!response.ok) {
           if (response.status === 400 && result.error) {
-            toast.success("POEF");
+            showErrorToast("An unexpected error occurred.", isDarkMode);
             return;
           }
           throw new Error("Failed to update employee");
         }
+        showSuccessToast("Successfully updated employee", isDarkMode);
 
         console.log("Employee updated successfully:", result);
 
@@ -503,12 +535,14 @@ export default function App() {
             emp.id === updatedEmployee.id ? result : emp
           )
         );
-        toast.success("POEF");
 
         setIsEditModalOpen(false);
       } catch (error) {
         console.error("Error updating employee:", error);
-        toast.success("POEF");
+        showErrorToast(
+          "Error updating employee error:" + `${error}`,
+          isDarkMode
+        );
       }
     };
 
@@ -530,24 +564,24 @@ export default function App() {
 
         if (!response.ok) {
           if (response.status === 400 && result.error) {
-            toast.success("POEF");
-
+            showErrorToast("Error: " + `${result.error}`, isDarkMode);
             return;
           }
           throw new Error("Failed to delete employee");
         }
 
-        console.log("Employee deleted successfully:", result);
-
         // Update the local state to remove the deleted employee
         setEmployees((prevEmployees) =>
           prevEmployees.filter((emp) => emp.id !== employeeId)
         );
-        toast.success("POEF");
+        showSuccessToast(
+          "Employee deleted successfully: " + `${result}`,
+          isDarkMode
+        );
 
         setIsEditModalOpen(false);
       } catch (error) {
-        toast.success("POEF");
+        showErrorToast("Error: " + `${error}`, isDarkMode);
       }
     };
 
@@ -730,7 +764,8 @@ export default function App() {
             </Tabs>
           </CardBody>
         </Card>
-      </div>
+      </div>{" "}
+      <Toaster />
     </>
   );
 }
