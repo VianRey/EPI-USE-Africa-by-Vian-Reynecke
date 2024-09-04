@@ -34,32 +34,34 @@ export default function about() {
                 />
                 <p className="text-gray-900 dark:text-gray-100 mb-4 text-lg">
                   Hi, I'm Vian Reynecke, a final-year Computer Science student
-                  at the University of Pretoria and a partner at BlendWeb. I’m
+                  at the University of Pretoria and a partner at BlendWeb. I'm
                   passionate about technology and eager to pursue an honors
                   program. I'm also looking for job shadowing or internship
                   opportunities in 2025.
                 </p>
                 <p className="text-gray-700 dark:text-gray-300 mb-4">
                   Outside of coding, I enjoy exploring tech trends, DJing Afro
-                  Tech, and designing creative solutions. Let’s connect and make
+                  Tech, and designing creative solutions. Let's connect and make
                   an impact together!
                 </p>
               </div>
             </CardBody>
           </Card>
         </motion.div>
-        <div className="flex justify-center gap-6">
+        <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 w-full max-w-[800px]">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
+            className="w-full sm:w-auto"
           >
             <a
               href="https://github.com/VianRey"
               target="_blank"
               rel="noopener noreferrer"
+              className="w-full"
             >
-              <Button className="bg-orange-800">
+              <Button className="bg-orange-800 w-full">
                 <FontAwesomeIcon icon={faGithub} size="2x" />
                 <span className="text-lg">GitHub</span>
               </Button>
@@ -69,13 +71,15 @@ export default function about() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
+            className="w-full sm:w-auto"
           >
             <a
               href="https://www.linkedin.com/in/vian-reynecke-a80604282/"
               target="_blank"
               rel="noopener noreferrer"
+              className="w-full"
             >
-              <Button className="bg-blue-600">
+              <Button className="bg-blue-600 w-full">
                 <FontAwesomeIcon icon={faLinkedin} size="2x" />
                 <span className="text-lg">LinkedIn</span>
               </Button>
@@ -85,13 +89,15 @@ export default function about() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.8 }}
+            className="w-full sm:w-auto"
           >
             <a
               href="https://blendweb.co.za"
               target="_blank"
               rel="noopener noreferrer"
+              className="w-full"
             >
-              <Button className="dark:bg-white dark:text-gray-800 bg-gray-800 text-white">
+              <Button className="dark:bg-white dark:text-gray-800 bg-gray-800 text-white w-full">
                 <FontAwesomeIcon icon={faGlobe} size="2x" />
                 <span className="text-lg">BlendWeb</span>
               </Button>
