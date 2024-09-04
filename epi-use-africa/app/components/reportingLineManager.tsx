@@ -20,7 +20,7 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
   initialSelection = null,
   disabled = false,
   employees,
-  errorMessage, // Added this line
+  errorMessage,
   className,
 }) => {
   const [selectedManagerRole, setSelectedManagerRole] = useState<string | null>(
@@ -42,8 +42,9 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
 
   const handleSelect = (value: React.Key) => {
     const selectedValue = value.toString();
-    setSelectedManagerRole(selectedValue);
-    onSelectionChange(selectedValue);
+    const [role] = selectedValue.split("-");
+    setSelectedManagerRole(role);
+    onSelectionChange(role);
   };
 
   const getGravatarUrl = (email: string) => {
@@ -133,7 +134,7 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
         }}
         selectedKeys={
           selectedManagerRole !== null
-            ? new Set([selectedManagerRole.toString()])
+            ? new Set([`${selectedManagerRole}-${selectedEmployee?.id || ""}`])
             : new Set()
         }
         onSelectionChange={(keys) => handleSelect(Array.from(keys)[0])}
@@ -141,7 +142,7 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
       >
         {(employee) => (
           <SelectItem
-            key={employee.role}
+            key={`${employee.role}-${employee.id}`}
             textValue={`${employee.name} ${employee.surname}`}
           >
             <div className="flex gap-2 items-center py-2 ">

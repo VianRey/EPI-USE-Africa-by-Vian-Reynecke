@@ -56,6 +56,10 @@ interface Role {
 }
 
 export default function home() {
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
+    null
+  );
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const isDarkMode = useDarkMode();
   const showSuccessToast = (message: string, isDarkMode: boolean) => {
     toast.success(message, {
@@ -494,10 +498,6 @@ export default function home() {
 
   const ManageSection = () => {
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
-      null
-    );
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     // Flatten the hierarchy for comprehensive searching
     const flatEmployees = flattenHierarchy(employees);
@@ -635,9 +635,10 @@ export default function home() {
               ) : (
                 <EmployeeHierarchy
                   employees={employees}
-                  onEditUser={() => {}}
+                  onEditUser={handleEditUser}
                   expandedByDefault={true}
                   mode="edit"
+                  searchTerm={searchTerm}
                 />
               )}
             </div>

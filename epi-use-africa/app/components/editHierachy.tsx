@@ -15,9 +15,10 @@ interface Employee {
 
 interface EmployeeHierarchyProps {
   employees: Employee[];
-  onEditUser?: (employee: Employee) => void; // Optional if used only in edit mode
+  onEditUser?: (employee: Employee) => void;
   expandedByDefault: boolean;
-  mode: "edit" | "view"; // New mode prop
+  mode: "edit" | "view";
+  searchTerm: string;
 }
 
 interface HierarchyNode {
@@ -31,13 +32,9 @@ const EmployeeHierarchy: React.FC<EmployeeHierarchyProps> = ({
   onEditUser,
   expandedByDefault,
   mode,
+  searchTerm,
 }) => {
-  const [searchTerm, setSearchTerm] = useState("");
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
-    null
-  );
 
   useEffect(() => {
     if (expandedByDefault) {
@@ -52,8 +49,6 @@ const EmployeeHierarchy: React.FC<EmployeeHierarchyProps> = ({
 
   const handleEditUser = (employee: Employee) => {
     if (onEditUser) {
-      setSelectedEmployee(employee);
-      setIsEditModalOpen(true);
       onEditUser(employee);
     }
   };
@@ -70,107 +65,69 @@ const EmployeeHierarchy: React.FC<EmployeeHierarchyProps> = ({
     });
   };
 
-  const renderEmployeeNode = (employee: Employee, hasChildren: boolean) => (
-    <div className="flex items-center p-2 border rounded-lg shadow-sm dark:bg-gray-700 dark:text-white">
-      <Avatar src={getGravatarUrl(employee.email)} size="sm" />
-      <div className="ml-2 flex-grow">
-        <div className="font-semibold text-sm">{`${employee.name} ${employee.surname}`}</div>
-        <div className="text-xs text-gray-400">{employee.role}</div>
-      </div>
-      {mode === "edit" ? (
-        <Button
-          size="sm"
-          isIconOnly
-          variant="light"
-          onClick={() => handleEditUser(employee)}
-        >
-          <FaEdit size={12} />
-        </Button>
-      ) : (
-        // Conditionally render plus/minus only if the node has children
-        hasChildren && (
+  const matchesSearch = (employee: Employee) => {
+    if (!searchTerm.trim()) return false; // Return false if searchTerm is empty or just whitespace
+    const searchLower = searchTerm.toLowerCase().trim();
+    return (
+      employee.name.toLowerCase().includes(searchLower) ||
+      employee.surname.toLowerCase().includes(searchLower) ||
+      employee.role.toLowerCase().includes(searchLower)
+    );
+  };
+
+  const renderEmployeeNode = (employee: Employee, hasChildren: boolean) => {
+    const isHighlighted = matchesSearch(employee);
+    return (
+      <div
+        key={employee.id}
+        className={`flex items-center p-2 border rounded-lg shadow-sm ${
+          isHighlighted
+            ? "bg-yellow-100 dark:bg-green-900 dark:text-white"
+            : "dark:bg-gray-700 dark:text-white"
+        }`}
+      >
+        <Avatar src={getGravatarUrl(employee.email)} size="sm" />
+        <div className="ml-2 flex-grow">
+          <div className="font-semibold text-sm">{`${employee.name} ${employee.surname}`}</div>
+          <div className="text-xs text-gray-400">{employee.role}</div>
+        </div>
+        {mode === "edit" ? (
           <Button
             size="sm"
             isIconOnly
             variant="light"
-            onClick={() => toggleExpand(employee.id)}
+            onClick={() => handleEditUser(employee)}
           >
-            {expandedNodes.has(employee.id) ? (
-              <FaMinus size={12} />
-            ) : (
-              <FaPlus size={12} />
-            )}
+            <FaEdit size={12} />
           </Button>
-        )
-      )}
-    </div>
-  );
-
-  const getRelatedEmployees = (
-    employees: Employee[],
-    searchTerm: string
-  ): Set<string> => {
-    const relatedEmployees = new Set<string>();
-
-    const matchedEmployees = employees.filter((emp) => {
-      const matches = `${emp.name} ${emp.surname} ${emp.role}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      return matches;
-    });
-
-    const queue = [...matchedEmployees];
-
-    while (queue.length > 0) {
-      const emp = queue.shift()!;
-      if (relatedEmployees.has(emp.id)) continue;
-
-      relatedEmployees.add(emp.id);
-
-      const manager = employees.find(
-        (e) => e.id === emp.reporting_line_manager
-      );
-      if (manager && !relatedEmployees.has(manager.id)) {
-        queue.push(manager);
-      }
-
-      const directReports = employees.filter(
-        (e) => e.reporting_line_manager === emp.id
-      );
-      for (const report of directReports) {
-        if (!relatedEmployees.has(report.id)) {
-          queue.push(report);
-        }
-      }
-    }
-
-    return relatedEmployees;
+        ) : (
+          hasChildren && (
+            <Button
+              size="sm"
+              isIconOnly
+              variant="light"
+              onClick={() => toggleExpand(employee.id)}
+            >
+              {expandedNodes.has(employee.id) ? (
+                <FaMinus size={12} />
+              ) : (
+                <FaPlus size={12} />
+              )}
+            </Button>
+          )
+        )}
+      </div>
+    );
   };
 
   const buildHierarchy = (
     employees: Employee[],
-    managerRole: string | null = null,
-    relatedEmployees: Set<string>,
-    processedEmployees: Set<string> = new Set()
+    managerRole: string | null = null
   ): HierarchyNode[] => {
     const hierarchy = employees
-      .filter(
-        (emp) =>
-          emp.reporting_line_manager === managerRole &&
-          relatedEmployees.has(emp.id) &&
-          !processedEmployees.has(emp.id)
-      )
+      .filter((emp) => emp.reporting_line_manager === managerRole)
       .map((emp) => {
-        processedEmployees.add(emp.id);
-
-        const children = buildHierarchy(
-          employees,
-          emp.role,
-          relatedEmployees,
-          processedEmployees
-        );
-
-        // Check if the employee has children (i.e., if the children array is not empty)
+        const children = buildHierarchy(employees, emp.role);
         const hasChildren = children.length > 0;
 
         return {
@@ -183,32 +140,33 @@ const EmployeeHierarchy: React.FC<EmployeeHierarchyProps> = ({
     return hierarchy;
   };
 
-  const relatedEmployees = getRelatedEmployees(employees, searchTerm);
-  const filteredHierarchy = buildHierarchy(employees, null, relatedEmployees);
-
   const renderTreeNodes = (nodes: HierarchyNode[]): React.ReactNode => {
     return nodes.map((node) => (
-      <TreeNode key={node.employee?.id} label={node.label}>
-        {expandedNodes.has(node.employee!.id) && renderTreeNodes(node.children)}
+      <TreeNode
+        key={`${node.employee?.id}-${node.employee?.role}`}
+        label={node.label}
+      >
+        {(expandedNodes.has(node.employee!.id) || searchTerm.trim()) &&
+          renderTreeNodes(node.children)}
       </TreeNode>
     ));
   };
 
+  const hierarchy = buildHierarchy(employees);
+
   return (
-    <>
-      <div className="p-4 overflow-x-auto max-w-full">
-        <div className="min-w-max">
-          <Tree
-            lineWidth="2px"
-            lineColor="#ccc"
-            lineBorderRadius="10px"
-            label={""}
-          >
-            {renderTreeNodes(filteredHierarchy)}
-          </Tree>
-        </div>
+    <div className="p-4 overflow-x-auto max-w-full">
+      <div className="min-w-max">
+        <Tree
+          lineWidth="2px"
+          lineColor="#ccc"
+          lineBorderRadius="10px"
+          label={""}
+        >
+          {renderTreeNodes(hierarchy)}
+        </Tree>
       </div>
-    </>
+    </div>
   );
 };
 
