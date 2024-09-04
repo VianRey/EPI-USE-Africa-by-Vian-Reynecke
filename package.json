@@ -5,5 +5,10 @@
     "use-dark-mode-ts": "^1.0.2",
     "react-organizational-chart": "^2.2.0",
     "react-hot-toast": "^2.4.1"
+  },
+  "scripts": {
+    "dev": "node --no-deprecation node_modules/next/dist/bin/next dev",
+    "build": "node --no-deprecation node_modules/next/dist/bin/next build",
+    "start": "node --no-deprecation node_modules/next/dist/bin/next start"
   }
 }
