@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { useDarkMode } from "use-dark-mode-ts";
+
 import {
   Skeleton,
   Link,
@@ -35,8 +37,8 @@ interface Role {
   role: string;
 }
 
-export default function HomePage() {
-  const isDarkMode = document.documentElement.classList.contains("dark");
+export default function home() {
+  const isDarkMode = useDarkMode();
   const showSuccessToast = (message: string, isDarkMode: boolean) => {
     toast.success(message, {
       duration: 4000,

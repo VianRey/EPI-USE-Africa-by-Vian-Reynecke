@@ -14,7 +14,7 @@ interface Employee {
   reporting_line_manager: string | null;
 }
 
-export default function HierarchyPage() {
+export default function hierarchy() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
