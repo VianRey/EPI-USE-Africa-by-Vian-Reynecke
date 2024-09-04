@@ -112,34 +112,31 @@ export default function App() {
 
     fetchData();
   }, []);
-  const flattenHierarchy = useCallback(
-    (employees: Employee[], managerRole: string | null = null): Employee[] => {
-      let flatEmployees: Employee[] = [];
-      let visitedRoles = new Set<string>(); // Track visited roles to prevent infinite loops
+  const flattenHierarchy = (
+    employees: Employee[],
+    managerId: string | null = null
+  ): Employee[] => {
+    let flatEmployees: Employee[] = [];
+    let queue: Employee[] = employees.filter(
+      (emp) => emp.reporting_line_manager === managerId
+    );
+    let visitedEmployees = new Set<string>();
 
-      const addEmployeeWithDescendants = (employee: Employee) => {
-        if (visitedRoles.has(employee.role)) {
-          console.warn(`Circular reference detected in role: ${employee.role}`);
-          return; // Stop further processing if circular reference is detected
-        }
-
-        visitedRoles.add(employee.role);
+    while (queue.length > 0) {
+      const employee = queue.shift()!;
+      if (!visitedEmployees.has(employee.id)) {
+        visitedEmployees.add(employee.id);
         flatEmployees.push(employee);
 
-        employees
-          .filter((emp) => emp.reporting_line_manager === employee.role)
-          .forEach(addEmployeeWithDescendants);
-      };
+        const children = employees.filter(
+          (emp) => emp.reporting_line_manager === employee.id
+        );
+        queue.push(...children);
+      }
+    }
 
-      // Start with employees who have no manager (top-level employees)
-      employees
-        .filter((emp) => emp.reporting_line_manager === managerRole)
-        .forEach(addEmployeeWithDescendants);
-
-      return flatEmployees;
-    },
-    []
-  );
+    return flatEmployees;
+  };
 
   interface CreateSectionProps {
     roles: Role[];
@@ -615,7 +612,7 @@ export default function App() {
                 Employee Hierarchy
               </h2>
               <EmployeeHierarchy
-                employees={filteredEmployees}
+                employees={employees}
                 onEditUser={handleEditUser}
                 expandedByDefault={true}
               />

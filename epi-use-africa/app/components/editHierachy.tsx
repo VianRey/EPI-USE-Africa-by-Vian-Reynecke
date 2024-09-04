@@ -31,7 +31,7 @@ const EmployeeHierarchy: React.FC<EmployeeHierarchyProps> = ({
   onEditUser,
   expandedByDefault,
 }) => {
-  const [searchTerm, setSearchTerm] = useState(""); // Added searchTerm state
+  const [searchTerm, setSearchTerm] = useState("");
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
@@ -53,21 +53,7 @@ const EmployeeHierarchy: React.FC<EmployeeHierarchyProps> = ({
     console.log("handleEditUser called with employee:", employee);
     setSelectedEmployee(employee);
     setIsEditModalOpen(true);
-    onEditUser(employee); // Call the original onEditUser prop if needed
-  };
-
-  const handleUpdateUser = (updatedEmployee: Employee) => {
-    // Implement update logic here
-    console.log("Updating employee:", updatedEmployee);
-    setIsEditModalOpen(false);
-    // You should update the employees state here
-  };
-
-  const handleDeleteUser = (employeeId: string) => {
-    // Implement delete logic here
-    console.log("Deleting employee:", employeeId);
-    setIsEditModalOpen(false);
-    // You should update the employees state here
+    onEditUser(employee);
   };
 
   const renderEmployeeNode = (employee: Employee) => (
@@ -88,64 +74,111 @@ const EmployeeHierarchy: React.FC<EmployeeHierarchyProps> = ({
     </div>
   );
 
-  const filteredEmployees = employees.filter((employee) =>
-    `${employee.name} ${employee.surname} ${employee.role}`
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
-  const relatedEmployees = new Set<string>();
-  filteredEmployees.forEach((emp) => {
-    relatedEmployees.add(emp.id);
-    // Add parents
-    let manager = employees.find((e) => e.role === emp.reporting_line_manager);
-    while (manager) {
-      relatedEmployees.add(manager.id);
-      // Check if manager is defined before accessing its properties
-      const nextManagerRole = manager.reporting_line_manager;
-      if (!nextManagerRole) break;
-      manager = employees.find((e) => e.role === nextManagerRole);
-    }
-    // Add children
-    const addChildren = (parentId: string) => {
-      const children = employees.filter(
-        (e) => e.reporting_line_manager === parentId
+  const getRelatedEmployees = (
+    employees: Employee[],
+    searchTerm: string
+  ): Set<string> => {
+    const relatedEmployees = new Set<string>();
+
+    // Start by finding all employees that match the search term
+    const matchedEmployees = employees.filter((emp) => {
+      const matches = `${emp.name} ${emp.surname} ${emp.role}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      // if (matches) {
+      //   console.log(`Matched employee: ${emp.name} ${emp.surname}`);
+      // }
+      return matches;
+    });
+
+    // Add all matched employees and their reporting chain (both managers and subordinates)
+    const queue = [...matchedEmployees];
+
+    while (queue.length > 0) {
+      const emp = queue.shift()!;
+      // console.log(`Processing employee: ${emp.name} ${emp.surname}`);
+
+      // Avoid duplicates
+      if (relatedEmployees.has(emp.id)) {
+        // console.log(`Skipping duplicate employee: ${emp.name} ${emp.surname}`);
+        continue;
+      }
+
+      relatedEmployees.add(emp.id);
+      // console.log(
+      //   `Added employee to relatedEmployees: ${emp.name} ${emp.surname}`
+      // );
+
+      // Add manager to the queue
+      const manager = employees.find(
+        (e) => e.id === emp.reporting_line_manager
       );
-      children.forEach((child) => {
-        relatedEmployees.add(child.id);
-        addChildren(child.role);
-      });
-    };
-    addChildren(emp.role);
-  });
+      if (manager && !relatedEmployees.has(manager.id)) {
+        // console.log(
+        //   `Added manager to queue: ${manager.name} ${manager.surname}`
+        // );
+        queue.push(manager);
+      }
+
+      // Add direct reports to the queue
+      const directReports = employees.filter(
+        (e) => e.reporting_line_manager === emp.id
+      );
+      for (const report of directReports) {
+        if (!relatedEmployees.has(report.id)) {
+          // console.log(
+          //   `Added direct report to queue: ${report.name} ${report.surname}`
+          // );
+          queue.push(report);
+        }
+      }
+    }
+
+    // console.log("Final related employees set:", Array.from(relatedEmployees));
+    return relatedEmployees;
+  };
+
   const buildHierarchy = (
     employees: Employee[],
-    managerRole: string | null = null
+    managerRole: string | null = null,
+    relatedEmployees: Set<string>,
+    processedEmployees: Set<string> = new Set() // Add a set to track processed employees
   ): HierarchyNode[] => {
-    return employees
-      .filter((emp) => emp.reporting_line_manager === managerRole)
+    console.log(`Building hierarchy for managerRole: ${managerRole}`);
+
+    const hierarchy = employees
+      .filter(
+        (emp) =>
+          emp.reporting_line_manager === managerRole && // Compare by role instead of ID
+          relatedEmployees.has(emp.id) &&
+          !processedEmployees.has(emp.id) // Ensure the employee has not been processed yet
+      )
       .map((emp) => {
-        const children = buildHierarchy(employees, emp.role);
+        console.log(
+          `Creating node for employee: ${emp.name} ${emp.surname} (Role: ${emp.role})`
+        );
 
-        // Check if this employee matches the search term or if any of their children do
-        const matchesSearchTerm =
-          `${emp.name} ${emp.surname} ${emp.role}`
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) || children.length > 0;
+        // Add this employee to the processed set to avoid infinite loops
+        processedEmployees.add(emp.id);
 
-        if (matchesSearchTerm) {
-          return {
-            label: renderEmployeeNode(emp),
-            children,
-            employee: emp,
-          };
-        }
-        return null;
-      })
-      .filter((node) => node !== null) as HierarchyNode[];
+        return {
+          label: renderEmployeeNode(emp),
+          children: buildHierarchy(
+            employees,
+            emp.role,
+            relatedEmployees,
+            processedEmployees
+          ), // Pass processedEmployees set to track
+          employee: emp,
+        };
+      });
+
+    console.log(`Hierarchy nodes for managerRole ${managerRole}:`, hierarchy);
+    return hierarchy;
   };
-  const filteredHierarchy = buildHierarchy(
-    employees.filter((emp) => relatedEmployees.has(emp.id))
-  );
+
+  const relatedEmployees = getRelatedEmployees(employees, searchTerm);
+  const filteredHierarchy = buildHierarchy(employees, null, relatedEmployees);
 
   const renderTreeNodes = (nodes: HierarchyNode[]): React.ReactNode => {
     return nodes.map((node) => (
