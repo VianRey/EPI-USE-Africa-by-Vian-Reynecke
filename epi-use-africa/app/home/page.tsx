@@ -579,10 +579,9 @@ export default function home() {
             emp.id === updatedEmployee.id ? result : emp
           )
         );
-
         setIsEditModalOpen(false);
       } catch (error) {
-        showErrorToast("Error updating employee: " + `${error}`, isDarkMode);
+        showErrorToast(`${error}`, isDarkMode);
       }
     };
 

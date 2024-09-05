@@ -15,9 +15,13 @@ interface Employee {
   id: string;
   name: string;
   surname: string;
-  role: string;
   email: string;
+  role: string;
+  reporting_id: string | null;
   reporting_line_manager: string | null;
+  profileImageUrl?: string;
+  birthDate?: string;
+  salary?: string;
 }
 
 export default function HierarchyPage() {
