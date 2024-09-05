@@ -12,8 +12,8 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-8 bg-background text-foreground">
-      <header className="w-full py-6 px-4 bg-background border  shadow-md rounded-lg mb-8">
+    <main className="flex min-h-screen flex-col items-center justify-between p-8 bg-gray-900 text-foreground">
+      <header className="w-full py-6 px-4 bg-gray-9 border-b   mb-8">
         <h1 className="text-4xl font-bold text-center text-foreground">
           Employee Hierarchy Management System
         </h1>
@@ -81,7 +81,7 @@ export default function Home() {
             icon: FaSearchPlus,
             title: "Advanced Search & Reporting",
             description:
-              "Powerful search functionality and customizable reports. Sort and filter employee data based on various fields.",
+              "Powerful search functionality for graph and list view. Sort and filter employee data based on various fields.",
             color: "text-purple-500",
           },
         ].map((feature, index) => (
@@ -103,13 +103,14 @@ export default function Home() {
       {/* Additional Features */}
       <section className="mt-16 text-center w-full max-w-4xl">
         <h2 className="text-3xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">
-          Additional Features
+          More Features
         </h2>
         <ul className="grid grid-cols-2 gap-4 text-left mx-auto">
           {[
             "Gravatar integration for employee profile pictures",
             "Cloud-hosted for easy access and scalability",
             "Responsive design for desktop and mobile use",
+            "Validation for creating, updating and deleting profiles",
           ].map((feature, index) => (
             <li key={index} className="flex items-center text-foreground">
               <svg

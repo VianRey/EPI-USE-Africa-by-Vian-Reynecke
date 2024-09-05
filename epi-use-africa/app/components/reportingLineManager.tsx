@@ -1,17 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Select, SelectItem, Avatar } from "@nextui-org/react";
 import md5 from "md5";
 import { Employee } from "../components/editUser";
 
 interface ReportingLineManagerProps {
   label: string;
-  onSelectionChange: (managerRole: string | null) => void;
+  onSelectionChange: (
+    managerRole: string | null,
+    managerId: string | null
+  ) => void; // Updated
   initialSelection?: string | null;
   disabled?: boolean;
   employees: Employee[];
   errorMessage?: string;
-  style?: React.CSSProperties; // Add this line
   className?: string;
+  currentEmployeeId?: string;
 }
 
 const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
@@ -22,6 +25,7 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
   employees,
   errorMessage,
   className,
+  currentEmployeeId,
 }) => {
   const [selectedManagerRole, setSelectedManagerRole] = useState<string | null>(
     initialSelection
@@ -38,13 +42,54 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
         setSelectedManagerRole(null);
       }
     }
-  }, [employees, initialSelection]);
+  }, [employees, initialSelection, currentEmployeeId]);
+
+  const getSubordinates = (
+    employeeId: string,
+    allEmployees: Employee[]
+  ): Set<string> => {
+    const subordinates = new Set<string>();
+
+    const addSubordinates = (id: string) => {
+      const directReports = allEmployees.filter(
+        (emp) => emp.reporting_id === id
+      );
+
+      for (const report of directReports) {
+        if (!subordinates.has(report.id)) {
+          subordinates.add(report.id);
+          addSubordinates(report.id);
+        }
+      }
+    };
+
+    addSubordinates(employeeId);
+    return subordinates;
+  };
+
+  const filteredEmployees = useMemo(() => {
+    if (!currentEmployeeId) {
+      console.warn("No currentEmployeeId provided. Returning all employees.");
+      return employees;
+    }
+
+    console.log("Current employee:", currentEmployeeId);
+    const subordinates = getSubordinates(currentEmployeeId, employees);
+    console.log("Subordinates:", subordinates);
+
+    const filtered = employees.filter(
+      (emp) => !subordinates.has(emp.id) && emp.id !== currentEmployeeId
+    );
+
+    console.log("Filtered employees:", filtered);
+    return filtered;
+  }, [employees, currentEmployeeId]);
 
   const handleSelect = (value: React.Key) => {
     const selectedValue = value.toString();
-    const [role] = selectedValue.split("-");
+    const [role, id] = selectedValue.split("-");
     setSelectedManagerRole(role);
-    onSelectionChange(role);
+    onSelectionChange(role, id); // Updated to pass both role and id
   };
 
   const getGravatarUrl = (email: string) => {
@@ -52,7 +97,7 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
     return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
   };
 
-  const selectedEmployee = employees.find(
+  const selectedEmployee = filteredEmployees.find(
     (emp) => emp.role === selectedManagerRole
   );
 
@@ -80,11 +125,11 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
     <div className={`w-full ${className || ""}`}>
       <Select
         variant="faded"
-        items={employees}
+        items={filteredEmployees}
         label={label}
         isDisabled={disabled}
         classNames={{
-          base: `w-full ${errorMessage ? "border-red-500" : ""}`, // Apply error border
+          base: `w-full ${errorMessage ? "border-red-500" : ""}`,
           trigger: [
             "min-h-unit-12",
             "h-auto",

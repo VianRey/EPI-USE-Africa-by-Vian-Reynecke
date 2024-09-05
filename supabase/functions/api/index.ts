@@ -32,7 +32,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const { data: employees, error: employeesError } = await supabase
           .from("employees")
           .select(
-            "id, name, surname, birth_date, employee_number, salary, role, reporting_line_manager, email, created_at, updated_at",
+            "id, name, surname, birth_date, employee_number, salary, role, reporting_line_manager, email, created_at, updated_at, reporting_id",
           );
 
         if (employeesError) throw employeesError;
@@ -129,6 +129,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           role: payload.role,
           email: payload.email,
           reporting_line_manager: payload.reporting_line_manager,
+          reporting_id: payload.reporting_id,
         };
 
         const { data: employee, error: createError } = await supabase

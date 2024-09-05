@@ -11,6 +11,10 @@ interface Employee {
   role: string;
   email: string;
   reporting_line_manager: string | null;
+  reporting_id: string | null; // Add this line
+  profileImageUrl?: string;
+  birthDate?: string;
+  salary?: string;
 }
 
 interface EmployeeHierarchyProps {
