@@ -34,6 +34,7 @@ interface Employee {
   surname: string;
   role: string;
   email: string;
+  reporting_id: string | null; // Add this line
   reporting_line_manager: string | null;
 }
 

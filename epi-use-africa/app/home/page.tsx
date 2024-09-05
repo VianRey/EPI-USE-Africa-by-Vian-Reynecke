@@ -49,13 +49,17 @@ const Spinner = dynamic(() => import("../components/loading"), {
 const EmployeeHierarchy = dynamic(() => import("../components/editHierachy"), {
   ssr: false,
 });
-interface Employee {
+export interface Employee {
   id: string;
   name: string;
   surname: string;
-  role: string;
   email: string;
+  role: string;
+  reporting_id: string | null;
   reporting_line_manager: string | null;
+  profileImageUrl?: string;
+  birthDate?: string;
+  salary?: string;
 }
 
 interface Role {
@@ -184,6 +188,7 @@ export default function home() {
       role: "",
       salary: "",
       reporting_line_manager: null,
+      reporting_id: null, // Reset this as well
     });
 
     const [errors, setErrors] = useState({
@@ -211,6 +216,7 @@ export default function home() {
         role: "",
         salary: "",
         reporting_line_manager: "",
+        reporting_id: null, // Add this line
       };
 
       let isValid = true;
@@ -268,9 +274,10 @@ export default function home() {
         setReportingManagerMessage("Please select a role first.");
       }
     };
-
     const handleManagerChange = (managerId: string | null) => {
+      const manager = employees.find((emp) => emp.role === managerId);
       handleInputChange("reporting_line_manager", managerId);
+      handleInputChange("reporting_id", manager ? manager.id : null); // Add this line
     };
 
     const handleCreateEmployee = async () => {
@@ -320,7 +327,10 @@ export default function home() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               type: "createEmployee",
-              payload: newEmployee,
+              payload: {
+                ...newEmployee,
+                reporting_id: newEmployee.reporting_id, // Ensure this is included
+              },
             }),
           }
         );
@@ -356,6 +366,7 @@ export default function home() {
           role: "",
           salary: "",
           reporting_line_manager: null,
+          reporting_id: null, // Reset this as well
         });
         setErrors({
           name: "",
@@ -537,12 +548,23 @@ export default function home() {
         const result = await response.json();
 
         if (!response.ok) {
-          if (response.status === 400 && result.code === "DUPLICATE_EMAIL") {
-            showErrorToast(
-              "This email is already in use by another employee.",
-              isDarkMode
-            );
-            return;
+          if (response.status === 400) {
+            if (result.code === "DUPLICATE_EMAIL") {
+              showErrorToast(
+                "This email is already in use by another employee.",
+                isDarkMode
+              );
+              return;
+            } else if (
+              result.error &&
+              result.error.includes("circular reporting structure")
+            ) {
+              showErrorToast(
+                "Cannot update reporting line manager. This would create a circular reporting structure.",
+                isDarkMode
+              );
+              return;
+            }
           }
           throw new Error(result.error || "Failed to update employee");
         }
