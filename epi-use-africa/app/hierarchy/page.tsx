@@ -15,9 +15,13 @@ interface Employee {
   id: string;
   name: string;
   surname: string;
-  role: string;
   email: string;
+  role: string;
+  reporting_id: string | null;
   reporting_line_manager: string | null;
+  profileImageUrl?: string;
+  birthDate?: string;
+  salary?: string;
 }
 
 export default function HierarchyPage() {
@@ -58,7 +62,7 @@ export default function HierarchyPage() {
     <>
       <CustomNavbar />
       <div className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-b from-gray-100 to-white dark:from-gray-900 dark:to-gray-800 p-4 ">
-        <Card className="p-4 w-full max-w-[800px] dark:bg-gray-800 bg-white rounded-xl mb-8 ">
+        <Card className="w-full lg:w-[auto] lg:min-w-[800px] dark:bg-gray-800 bg-white rounded-xl shadow-none h-auto">
           <CardBody>
             <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">
               Employee Hierarchy

@@ -19,6 +19,7 @@ export interface Employee {
   surname: string;
   email: string;
   role: string;
+  reporting_id: string | null;
   reporting_line_manager: string | null;
   profileImageUrl?: string;
 }
@@ -109,11 +110,16 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   }, []);
 
   useEffect(() => {
-    Promise.all([fetchEmployees(), fetchRoles()]).then(() => setLoading(false));
-  }, [fetchEmployees, fetchRoles]);
+    if (isOpen) {
+      Promise.all([fetchEmployees(), fetchRoles()]).then(() =>
+        setLoading(false)
+      );
+    }
+  }, [isOpen, fetchEmployees, fetchRoles]);
 
   useEffect(() => {
     if (isOpen && employee) {
+      console.log("Setting editedEmployee:", employee);
       setEditedEmployee({ ...employee });
     } else if (!isOpen) {
       setEditedEmployee(null);
@@ -175,25 +181,40 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
         if (!prev) return null;
 
         if (field === "role" && value === "CEO") {
-          return { ...prev, [field]: value, reporting_line_manager: null };
+          return {
+            ...prev,
+            [field]: value,
+            reporting_line_manager: null,
+            reporting_id: null,
+          };
         }
 
         return { ...prev, [field]: value };
       });
 
-      // Clear the error for this field when the user starts typing
       setErrors((prev) => ({ ...prev, [field]: "" }));
     },
     []
   );
 
   const handleManagerChange = useCallback(
-    (managerId: string | null) => {
-      if (editedEmployee?.reporting_line_manager !== managerId) {
-        handleInputChange("reporting_line_manager", managerId);
+    (managerRole: string | null, managerId: string | null) => {
+      console.log("Manager changed to:", managerRole, "with ID:", managerId);
+      if (
+        editedEmployee?.reporting_line_manager !== managerRole ||
+        editedEmployee?.reporting_id !== managerId
+      ) {
+        setEditedEmployee((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            reporting_line_manager: managerRole,
+            reporting_id: managerId,
+          };
+        });
       }
     },
-    [handleInputChange, editedEmployee]
+    [editedEmployee]
   );
 
   const handleUpdate = () => {
@@ -215,6 +236,8 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   if (!editedEmployee) {
     return null;
   }
+
+  // console.log("Rendering EditUserModal, editedEmployee:", editedEmployee);
 
   return (
     <Modal
@@ -288,16 +311,19 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
                 errorMessage={errors.role}
               />
 
-              <ReportingLineManager
-                label="Reporting Line Manager"
-                onSelectionChange={handleManagerChange}
-                initialSelection={editedEmployee.reporting_line_manager}
-                employees={employees.filter(
-                  (emp) => emp.id !== editedEmployee?.id
-                )}
-                disabled={editedEmployee.role === "CEO"}
-                errorMessage={errors.reporting_line_manager}
-              />
+              {!loading && (
+                <ReportingLineManager
+                  label="Reporting Line Manager"
+                  onSelectionChange={handleManagerChange}
+                  initialSelection={editedEmployee.reporting_line_manager}
+                  employees={employees.filter(
+                    (emp) => emp.id !== editedEmployee.id
+                  )}
+                  currentEmployeeId={editedEmployee.id}
+                  disabled={editedEmployee.role === "CEO"}
+                  errorMessage={errors.reporting_line_manager}
+                />
+              )}
             </ModalBody>
             <ModalFooter>
               <Button
