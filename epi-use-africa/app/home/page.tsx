@@ -62,12 +62,22 @@ interface Role {
   role: string;
 }
 
+interface CreateSectionProps {
+  roles: Role[];
+  employees: Employee[];
+  onEmployeeCreated: (newEmployee: Employee) => void;
+}
+
 export default function home() {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
     null
   );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const isDarkMode = useDarkMode();
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const showSuccessToast = (message: string, isDarkMode: boolean) => {
     toast.success(message, {
       duration: 4000,
@@ -92,10 +102,6 @@ export default function home() {
       },
     });
   };
-
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -134,6 +140,7 @@ export default function home() {
 
     fetchData();
   }, []);
+
   const flattenHierarchy = (
     employees: Employee[],
     managerId: string | null = null
@@ -160,14 +167,14 @@ export default function home() {
     return flatEmployees;
   };
 
-  interface CreateSectionProps {
-    roles: Role[];
-    employees: Employee[];
-  }
+  const addEmployee = (newEmployee: Employee) => {
+    setEmployees((prevEmployees) => [...prevEmployees, newEmployee]);
+  };
 
   const CreateSection: React.FC<CreateSectionProps> = ({
     roles,
     employees,
+    onEmployeeCreated,
   }) => {
     const [newEmployee, setNewEmployee] = useState({
       name: "",
@@ -190,13 +197,9 @@ export default function home() {
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // Add this new state
     const [reportingLineManager, setReportingLineManager] = useState<
       string | null
     >(null);
-
-    // Add this new state
     const [reportingManagerMessage, setReportingManagerMessage] = useState("");
 
     const validateInputs = () => {
@@ -232,8 +235,6 @@ export default function home() {
         isValid = false;
       }
       if (!newEmployee.role) {
-        // Changed from newEmployee.role == "" to !newEmployee.role
-        console.log("HELLO ", newEmployee.role);
         newErrors.role = "Role is required";
         isValid = false;
       }
@@ -252,7 +253,6 @@ export default function home() {
 
     const handleInputChange = (field: string, value: string | null) => {
       setNewEmployee((prev) => ({ ...prev, [field]: value }));
-      // Clear the error for this field when the user starts typing
       setErrors((prev) => ({ ...prev, [field]: "" }));
     };
 
@@ -281,7 +281,6 @@ export default function home() {
       setIsSubmitting(true);
 
       try {
-        // First, check if the email already exists
         const checkEmailResponse = await fetch(
           "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
           {
@@ -314,7 +313,6 @@ export default function home() {
           return;
         }
 
-        // If email doesn't exist, proceed with creating the employee
         const createResponse = await fetch(
           "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
           {
@@ -350,9 +348,6 @@ export default function home() {
 
         console.log("Employee created successfully:", result);
 
-        // Reset form and show success message
-
-        // Reset the form after a successful creation
         setNewEmployee({
           name: "",
           surname: "",
@@ -376,6 +371,8 @@ export default function home() {
           `${result.name} ${result.surname} has been successfully added to the system.`,
           isDarkMode
         );
+
+        onEmployeeCreated(result);
       } catch (error) {
         console.error("Error creating employee:", error);
         showErrorToast(
@@ -386,6 +383,7 @@ export default function home() {
         setIsSubmitting(false);
       }
     };
+
     return (
       <Card className="w-full dark:bg-gray-800 bg-white  rounded-xl shadow-none ">
         <CardHeader className="flex gap-3 shadow-transparent ">
@@ -462,7 +460,7 @@ export default function home() {
                   value={newEmployee.role}
                   onChange={handleRoleChange}
                   roles={roles}
-                  errorMessage={errors.role} // Make sure this prop is correctly passed and handled in RoleDropdown
+                  errorMessage={errors.role}
                 />
               )}
             </div>
@@ -691,7 +689,7 @@ export default function home() {
     <>
       <CustomNavbar />
       <div className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-b bg-gray-100 dark:bg-gray-900 p-4">
-        <Card className="w-full  lg:w-[auto] lg:min-w-[800px] dark:bg-gray-800 bg-white rounded-xl shadow-none h-auto">
+        <Card className="w-full lg:w-[auto] lg:min-w-[800px] dark:bg-gray-800 bg-white rounded-xl shadow-none h-auto">
           <CardBody>
             <Tabs
               aria-label="CRUD Operations"
@@ -704,7 +702,11 @@ export default function home() {
               color="primary"
             >
               <Tab key="create" title="Create">
-                <CreateSection roles={roles} employees={employees} />
+                <CreateSection
+                  roles={roles}
+                  employees={employees}
+                  onEmployeeCreated={addEmployee}
+                />
               </Tab>
               <Tab key="Manage" title="Manage">
                 <ManageSection />
