@@ -12,8 +12,8 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-8 bg-gray-900 text-foreground">
-      <header className="w-full py-6 px-4 bg-gray-9 border-b   mb-8">
+    <main className="bg-white flex min-h-screen flex-col items-center justify-between p-8 dark:bg-gray-900 text-foreground">
+      <header className="w-full py-6 px-4 dark:bg-gray-900 border-b   mb-8">
         <h1 className="text-4xl font-bold text-center text-foreground">
           Employee Hierarchy Management System
         </h1>
