@@ -126,24 +126,34 @@ const EmployeeHierarchy: React.FC<EmployeeHierarchyProps> = ({
 
   const buildHierarchy = (
     employees: Employee[],
-    managerRole: string | null = null
+    managerId: string | null = null
   ): HierarchyNode[] => {
-    const hierarchy = employees
-      .filter((emp) => emp.reporting_line_manager === managerRole)
-      .map((emp) => {
-        const children = buildHierarchy(employees, emp.role);
-        const hasChildren = children.length > 0;
+    // Create a map for quick access to employees by ID
+    const employeeMap = new Map<string, Employee>();
+    employees.forEach((emp) => employeeMap.set(emp.id, emp));
 
-        return {
-          label: renderEmployeeNode(emp, hasChildren),
-          children: children,
-          employee: emp,
-        };
+    // Helper function to build the hierarchy
+    const buildNodeHierarchy = (managerId: string | null): HierarchyNode[] => {
+      const children: HierarchyNode[] = [];
+
+      employees.forEach((emp) => {
+        if (emp.reporting_id === managerId) {
+          const childNodes = buildNodeHierarchy(emp.id);
+          const hasChildren = childNodes.length > 0;
+          children.push({
+            label: renderEmployeeNode(emp, hasChildren),
+            children: childNodes,
+            employee: emp,
+          });
+        }
       });
 
-    return hierarchy;
-  };
+      return children;
+    };
 
+    return buildNodeHierarchy(managerId);
+  };
+  
   const renderTreeNodes = (nodes: HierarchyNode[]): React.ReactNode => {
     return nodes.map((node) => (
       <TreeNode
