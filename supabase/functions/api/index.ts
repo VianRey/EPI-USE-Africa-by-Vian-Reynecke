@@ -176,20 +176,22 @@ Deno.serve(async (req: Request): Promise<Response> => {
           }
         }
 
+        // Fetch the current employee including their role
         const { data: currentEmployee, error: fetchError } = await supabase
           .from("employees")
-          .select("role")
+          .select("id, role")
           .eq("id", id)
           .single();
 
         if (fetchError) throw fetchError;
 
         if (updates.role && updates.role !== currentEmployee.role) {
+          // Check for employees reporting to the current employee
           const { data: dependentEmployees, error: dependencyError } =
             await supabase
               .from("employees")
               .select("id")
-              .eq("reporting_line_manager", currentEmployee.role);
+              .eq("reporting_id", id);
 
           if (dependencyError) throw dependencyError;
 
@@ -197,7 +199,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
             return new Response(
               JSON.stringify({
                 error:
-                  "Cannot update employee role. There are still employees reporting to the current role.",
+                  "Cannot update employee role. There are still employees reporting to the current employee.",
                 dependentCount: dependentEmployees.length,
               }),
               {
@@ -211,6 +213,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           }
         }
 
+        // Update the employee
         const { data: updatedEmployee, error: updateError } = await supabase
           .from("employees")
           .update(updates)
@@ -222,14 +225,15 @@ Deno.serve(async (req: Request): Promise<Response> => {
         data = updatedEmployee;
         break;
       }
+
       case "deleteEmployee": {
         console.log("Attempting to delete an employee...");
         const { id: deleteId } = payload;
 
-        const { data: employeeToDelete, error: fetchDeleteError } =
+        const { data: _employeeToDelete, error: fetchDeleteError } =
           await supabase
             .from("employees")
-            .select("role")
+            .select("reporting_id")
             .eq("id", deleteId)
             .single();
 
@@ -239,7 +243,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           await supabase
             .from("employees")
             .select("id")
-            .eq("reporting_line_manager", employeeToDelete.role);
+            .eq("reporting_id", deleteId);
 
         if (dependencyDeleteError) throw dependencyDeleteError;
 
@@ -247,7 +251,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           return new Response(
             JSON.stringify({
               error:
-                "Cannot delete employee. There are still employees reporting to this role.",
+                "Cannot delete employee. There are still employees reporting to this employee.",
               dependentCount: dependentEmployees.length,
             }),
             {
@@ -271,6 +275,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         data = deletedEmployee;
         break;
       }
+
       default:
         return new Response(
           JSON.stringify({ error: "Unsupported request type" }),
