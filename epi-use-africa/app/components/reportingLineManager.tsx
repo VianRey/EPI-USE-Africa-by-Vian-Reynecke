@@ -73,15 +73,12 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
       return employees;
     }
 
-    console.log("Current employee:", currentEmployeeId);
     const subordinates = getSubordinates(currentEmployeeId, employees);
-    console.log("Subordinates:", subordinates);
 
     const filtered = employees.filter(
       (emp) => !subordinates.has(emp.id) && emp.id !== currentEmployeeId
     );
 
-    console.log("Filtered employees:", filtered);
     return filtered;
   }, [employees, currentEmployeeId]);
 

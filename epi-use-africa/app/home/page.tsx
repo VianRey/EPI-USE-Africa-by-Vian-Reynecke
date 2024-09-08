@@ -389,8 +389,6 @@ export default function home() {
           return;
         }
 
-        console.log("Employee created successfully:", result);
-
         // Reset the form fields after successful creation
         setNewEmployee({
           name: "",
@@ -561,7 +559,6 @@ export default function home() {
 
     // Function to handle user edits
     const handleEditUser = (employee: Employee) => {
-      console.log("Edit button clicked for employee:", employee);
       setSelectedEmployee(employee); // Set the selected employee for editing
       setIsEditModalOpen(true); // Open the edit modal
     };
@@ -606,8 +603,6 @@ export default function home() {
         }
 
         showSuccessToast("Successfully updated employee", isDarkMode);
-
-        console.log("Employee updated successfully:", result);
 
         // Update the local state with the updated employee
         setEmployees((prevEmployees) =>

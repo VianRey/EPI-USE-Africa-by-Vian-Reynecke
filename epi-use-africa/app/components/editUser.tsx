@@ -143,7 +143,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   // Set the employee being edited when the modal is opened
   useEffect(() => {
     if (isOpen && employee) {
-      console.log("Setting editedEmployee:", employee); // Log the employee being edited
       setEditedEmployee({ ...employee }); // Copy employee details to state for editing
     } else if (!isOpen) {
       setEditedEmployee(null); // Clear the state when modal is closed
@@ -227,7 +226,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   // Function to handle changes in reporting line manager
   const handleManagerChange = useCallback(
     (managerRole: string | null, managerId: string | null) => {
-      console.log("Manager changed to:", managerRole, "with ID:", managerId); // Log the new manager
       if (
         editedEmployee?.reporting_line_manager !== managerRole ||
         editedEmployee?.reporting_id !== managerId
