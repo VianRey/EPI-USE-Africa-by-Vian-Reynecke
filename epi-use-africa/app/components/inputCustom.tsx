@@ -1,6 +1,18 @@
+/**
+ * This component, `CustomInput`, is a reusable input field component for form elements.
+ * It wraps around the `Input` component from the `@nextui-org/react` library, applying custom styles
+ * for a more polished and modern look, including support for dark mode.
+ *
+ * It accepts all `InputProps` from the NextUI Input component and passes them to the underlying Input.
+ * Custom styles are applied using the `classNames` property, enabling consistent theming across light and dark modes.
+ *
+ * It also handles displaying an error message if `errorMessage` prop is provided.
+ */
+
 import React from "react";
 import { Input, InputProps } from "@nextui-org/react";
 
+// CustomInput component that extends NextUI's Input component and applies custom styles
 const CustomInput: React.FC<InputProps> = (props) => (
   <Input
     variant="faded"
