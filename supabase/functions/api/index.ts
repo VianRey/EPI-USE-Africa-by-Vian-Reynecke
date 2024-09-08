@@ -1,6 +1,13 @@
+/**
+ * This code defines a Supabase Edge Function using Deno runtime that handles different types of requests related to employee management.
+ * It connects to a Supabase database, retrieves, inserts, updates, and deletes employee data based on the request type.
+ * The function also supports CORS for secure API interactions.
+ */
+
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
+// Supabase credentials are fetched from environment variables
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -9,7 +16,9 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
 }
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
+// The main function that handles incoming requests
 Deno.serve(async (req: Request): Promise<Response> => {
+  // Handle CORS preflight requests for POST method
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -22,13 +31,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Parse the incoming request payload and determine the request type
     const { type, payload } = await req.json();
-    console.log("Request type:", type);
 
     let data;
+    // Handle the different request types based on the `type` field in the request payload
     switch (type) {
       case "getEmployees": {
-        console.log("Fetching employees...");
+        // Fetch all employees from the `employees` table
         const { data: employees, error: employeesError } = await supabase
           .from("employees")
           .select(
@@ -40,7 +50,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         break;
       }
       case "getRole": {
-        console.log("Fetching all roles from the view...");
+        // Fetch all roles from a view named `all_roles`
         const { data: roles, error: rolesError } = await supabase
           .from("all_roles")
           .select("*")
@@ -51,7 +61,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         break;
       }
       case "getReportingLineManager": {
-        console.log("Fetching reporting line managers...");
+        // Fetch the reporting line managers from the `employees` table
         const { data: managers, error: managersError } = await supabase
           .from("employees")
           .select("id, name, surname, role")
@@ -62,7 +72,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         break;
       }
       case "checkEmailExists": {
-        console.log("Checking if email exists...");
+        // Check if an email already exists in the `employees` table
         const { email } = payload;
         const { data: emailData, error: emailError } = await supabase
           .from("employees")
@@ -75,7 +85,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         break;
       }
       case "createEmployee": {
-        console.log("Creating a new employee...");
+        // Check if a CEO already exists (only one CEO allowed)
         if (payload.role === "CEO") {
           const { data: existingCEO, error: ceoCheckError } = await supabase
             .from("employees")
@@ -104,6 +114,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           }
         }
 
+        // Generate a unique employee number
         const { data: maxEmployeeNumber } = await supabase
           .from("employees")
           .select("employee_number")
@@ -120,6 +131,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           nextEmployeeNumber = `EMP${String(lastNumber + 1).padStart(3, "0")}`;
         }
 
+        // Insert new employee data into the `employees` table
         const newEmployeeData = {
           name: payload.name,
           surname: payload.surname,
@@ -143,10 +155,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
         break;
       }
       case "updateEmployee": {
-        console.log("Attempting to update an employee...");
         const { id, ...updates } = payload;
 
-        // Check for duplicate email
+        // Check for duplicate email before updating
         if (updates.email) {
           const { data: existingEmail, error: emailCheckError } = await supabase
             .from("employees")
@@ -227,9 +238,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
 
       case "deleteEmployee": {
-        console.log("Attempting to delete an employee...");
         const { id: deleteId } = payload;
 
+        // Check for dependent employees (reporting to the employee being deleted)
         const { data: _employeeToDelete, error: fetchDeleteError } =
           await supabase
             .from("employees")
@@ -264,6 +275,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           );
         }
 
+        // Delete the employee
         const { data: deletedEmployee, error: deleteError } = await supabase
           .from("employees")
           .delete()
