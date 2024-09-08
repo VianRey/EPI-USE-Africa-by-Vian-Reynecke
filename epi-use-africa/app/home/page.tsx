@@ -1,3 +1,16 @@
+////////////////////////////////////////////////////////////////
+// Breakdown of the page
+// - Home page that serves two primary purposes: creating new employees
+//   and managing existing employees.
+// - By default, the user is first shown the "create" tab of the page.
+//
+// Summary of core functionality:
+// 1. Fetches employee and role data from an API.
+// 2. Allows users to create new employees.
+// 3. Provides management options, including viewing the employee
+//    hierarchy, editing, and deleting employee profiles.
+////////////////////////////////////////////////////////////////
+
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import toast, { Toaster } from "react-hot-toast";
@@ -5,8 +18,6 @@ import { useDarkMode } from "use-dark-mode-ts";
 
 import {
   Skeleton,
-  Link,
-  Avatar,
   Button,
   Card,
   CardHeader,
@@ -14,12 +25,13 @@ import {
   Divider,
   Tabs,
   Tab,
-} from "@nextui-org/react";
+} from "@nextui-org/react"; // UI components from NextUI for styling and layout
 import { FaUserPlus, FaUsers } from "react-icons/fa";
-import dynamic from "next/dynamic";
+import dynamic from "next/dynamic"; // Dynamically imports components to optimize performance by splitting the code
 
+// Dynamically imported components for optimal performance
 const CustomInput = dynamic(() => import("../components/inputCustom"), {
-  ssr: false,
+  ssr: false, // This ensures the component is rendered only on the client
 });
 
 const EmployeeListView = dynamic(
@@ -49,6 +61,8 @@ const Spinner = dynamic(() => import("../components/loading"), {
 const EmployeeHierarchy = dynamic(() => import("../components/editHierachy"), {
   ssr: false,
 });
+
+// Employee interface for type safety in TypeScript
 export interface Employee {
   id: string;
   name: string;
@@ -61,11 +75,11 @@ export interface Employee {
   birthDate?: string;
   salary?: string;
 }
-
+// Role interface to manage role selection
 interface Role {
   role: string;
 }
-
+// Props interface for the CreateSection component, allowing roles and employees to be passed as props
 interface CreateSectionProps {
   roles: Role[];
   employees: Employee[];
@@ -73,6 +87,7 @@ interface CreateSectionProps {
 }
 
 export default function home() {
+  // State management for various UI elements and data
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
     null
   );
@@ -82,6 +97,7 @@ export default function home() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Custom toast notifications with dark mode support
   const showSuccessToast = (message: string, isDarkMode: boolean) => {
     toast.success(message, {
       duration: 4000,
@@ -107,6 +123,7 @@ export default function home() {
     });
   };
 
+  // Fetch initial data (employees and roles) when the component mounts
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -133,6 +150,7 @@ export default function home() {
         const employeesData = await employeesResponse.json();
         const rolesData = await rolesResponse.json();
 
+        // Set the employee and role data in the state
         setEmployees(employeesData);
         setRoles(rolesData);
       } catch (error) {
@@ -145,6 +163,7 @@ export default function home() {
     fetchData();
   }, []);
 
+  // Function to flatten the employee hierarchy for display purposes
   const flattenHierarchy = (
     employees: Employee[],
     managerId: string | null = null
@@ -155,12 +174,14 @@ export default function home() {
     );
     let visitedEmployees = new Set<string>();
 
+    // Process the employee hierarchy in a breadth-first manner
     while (queue.length > 0) {
       const employee = queue.shift()!;
       if (!visitedEmployees.has(employee.id)) {
         visitedEmployees.add(employee.id);
         flatEmployees.push(employee);
 
+        // Add the employees who report to the current employee to the queue
         const children = employees.filter(
           (emp) => emp.reporting_line_manager === employee.id
         );
@@ -171,10 +192,12 @@ export default function home() {
     return flatEmployees;
   };
 
+  // Adds a new employee to the list of employees
   const addEmployee = (newEmployee: Employee) => {
     setEmployees((prevEmployees) => [...prevEmployees, newEmployee]);
   };
 
+  // CreateSection component handles creating new employees
   const CreateSection: React.FC<CreateSectionProps> = ({
     roles,
     employees,
@@ -207,6 +230,7 @@ export default function home() {
     >(null);
     const [reportingManagerMessage, setReportingManagerMessage] = useState("");
 
+    // Validation for the inputs in the create form
     const validateInputs = () => {
       const newErrors = {
         name: "",
@@ -221,6 +245,7 @@ export default function home() {
 
       let isValid = true;
 
+      // Basic validation for required fields
       if (!newEmployee.name.trim()) {
         newErrors.name = "Name is required";
         isValid = false;
@@ -257,37 +282,44 @@ export default function home() {
       return isValid;
     };
 
+    // Handles changes in the input fields
     const handleInputChange = (field: string, value: string | null) => {
       setNewEmployee((prev) => ({ ...prev, [field]: value }));
       setErrors((prev) => ({ ...prev, [field]: "" }));
     };
 
+    // Handles changes in the role dropdown
     const handleRoleChange = (role: string) => {
       handleInputChange("role", role);
 
+      // If the role is CEO, the employee cannot have a reporting manager
       if (role === "CEO") {
         setNewEmployee((prev) => ({ ...prev, reporting_line_manager: null }));
         setReportingManagerMessage("CEO does not have a reporting manager.");
       } else if (role) {
-        setReportingManagerMessage("");
+        setReportingManagerMessage(""); // Clear message when a non-CEO role is selected
       } else {
         setReportingManagerMessage("Please select a role first.");
       }
     };
+
+    // Handles changes in the reporting manager selection
     const handleManagerChange = (managerId: string | null) => {
       const manager = employees.find((emp) => emp.role === managerId);
       handleInputChange("reporting_line_manager", managerId);
       handleInputChange("reporting_id", manager ? manager.id : null); // Add this line
     };
 
+    // Function to handle the creation of a new employee
     const handleCreateEmployee = async () => {
       if (!validateInputs()) {
-        return;
+        return; // Return if the inputs are invalid
       }
 
-      setIsSubmitting(true);
+      setIsSubmitting(true); // Set the submitting state
 
       try {
+        // Check if the email already exists
         const checkEmailResponse = await fetch(
           "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
           {
@@ -320,6 +352,7 @@ export default function home() {
           return;
         }
 
+        // If the email is unique, proceed to create the employee
         const createResponse = await fetch(
           "https://lfilvjszdheghtldasjg.supabase.co/functions/v1/api",
           {
@@ -358,6 +391,7 @@ export default function home() {
 
         console.log("Employee created successfully:", result);
 
+        // Reset the form fields after successful creation
         setNewEmployee({
           name: "",
           surname: "",
@@ -383,7 +417,7 @@ export default function home() {
           isDarkMode
         );
 
-        onEmployeeCreated(result);
+        onEmployeeCreated(result); // Callback to add the new employee to the list
       } catch (error) {
         console.error("Error creating employee:", error);
         showErrorToast(
@@ -511,7 +545,7 @@ export default function home() {
       </Card>
     );
   };
-
+  // ManageSection component handles viewing and managing employees
   const ManageSection = () => {
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -525,12 +559,14 @@ export default function home() {
         .includes(searchTerm.toLowerCase())
     );
 
+    // Function to handle user edits
     const handleEditUser = (employee: Employee) => {
       console.log("Edit button clicked for employee:", employee);
-      setSelectedEmployee(employee);
-      setIsEditModalOpen(true);
+      setSelectedEmployee(employee); // Set the selected employee for editing
+      setIsEditModalOpen(true); // Open the edit modal
     };
 
+    // Function to handle updating an employee's data
     const handleUpdateUser = async (updatedEmployee: Employee) => {
       try {
         const response = await fetch(
@@ -540,7 +576,7 @@ export default function home() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               type: "updateEmployee",
-              payload: updatedEmployee,
+              payload: updatedEmployee, // Send the updated employee data
             }),
           }
         );
@@ -579,12 +615,13 @@ export default function home() {
             emp.id === updatedEmployee.id ? result : emp
           )
         );
-        setIsEditModalOpen(false);
+        setIsEditModalOpen(false); // Close the edit modal
       } catch (error) {
         showErrorToast(`${error}`, isDarkMode);
       }
     };
 
+    // Function to handle deleting an employee
     const handleDeleteUser = async (employeeId: string) => {
       try {
         const response = await fetch(
@@ -594,7 +631,7 @@ export default function home() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               type: "deleteEmployee",
-              payload: { id: employeeId },
+              payload: { id: employeeId }, // Send the employee ID to delete
             }),
           }
         );
@@ -618,7 +655,7 @@ export default function home() {
           isDarkMode
         );
 
-        setIsEditModalOpen(false);
+        setIsEditModalOpen(false); // Close the modal after deletion
       } catch (error) {
         showErrorToast("Error: " + `${error}`, isDarkMode);
       }
@@ -698,14 +735,15 @@ export default function home() {
         <EditUserModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
-          employee={selectedEmployee}
-          onUpdate={handleUpdateUser}
-          onDelete={handleDeleteUser}
+          employee={selectedEmployee} // Pass the selected employee for editing
+          onUpdate={handleUpdateUser} // Callback function to update the employee
+          onDelete={handleDeleteUser} // Callback function to delete the employee
         />
       </>
     );
   };
 
+  // Main return block to render the page
   return (
     <>
       <CustomNavbar />
@@ -724,19 +762,19 @@ export default function home() {
             >
               <Tab key="create" title="Create">
                 <CreateSection
-                  roles={roles}
-                  employees={employees}
-                  onEmployeeCreated={addEmployee}
+                  roles={roles} // Pass roles to the create section
+                  employees={employees} // Pass employees to the create section
+                  onEmployeeCreated={addEmployee} // Function to add a new employee
                 />
               </Tab>
               <Tab key="Manage" title="Manage">
-                <ManageSection />
+                <ManageSection /> // Render the management section
               </Tab>
             </Tabs>
           </CardBody>
         </Card>
       </div>
-      <Toaster />
+      <Toaster /> // Render toast notifications
     </>
   );
 }

@@ -1,3 +1,9 @@
+////////////////////////////////////////////////////////////////
+// Breakdown of the page
+// - Landing page describing the basics of the assessment
+// - The explore system button take you to the "home" folder page
+////////////////////////////////////////////////////////////////
+
 "use client";
 
 import Image from "next/image";
@@ -136,7 +142,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="mt-32 w-full text-center py-4 bg-background rounded-lg">
         <p className="text-sm text-foreground/50">
-          © {new Date().getFullYear()} Vian Reynecke. All rights reserved.
+          © {new Date().getFullYear()} Vian Reynecke.
         </p>
       </footer>
     </main>
