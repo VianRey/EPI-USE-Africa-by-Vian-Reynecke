@@ -1,3 +1,10 @@
+/**
+ * The `ReportingLineManager` component is a dropdown that allows selecting an employee's reporting line manager from a filtered list.
+ * It ensures that the current employee and their subordinates are excluded from the available manager options to prevent circular reporting.
+ * The component dynamically renders the selected manager's name and avatar and handles employee selection changes via the `onSelectionChange` callback.
+ * It also supports error messaging and optional initial selection.
+ */
+
 import React, { useState, useEffect, useMemo } from "react";
 import { Select, SelectItem, Avatar } from "@nextui-org/react";
 import md5 from "md5";
@@ -10,11 +17,11 @@ interface ReportingLineManagerProps {
     managerId: string | null
   ) => void; // Updated
   initialSelection?: string | null;
-  disabled?: boolean;
-  employees: Employee[];
+  disabled?: boolean; // Disable dropdown if true
+  employees: Employee[]; // List of all employees to populate the dropdown
   errorMessage?: string;
   className?: string;
-  currentEmployeeId?: string;
+  currentEmployeeId?: string; // ID of the current employee to exclude them and their subordinates
 }
 
 const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
@@ -31,6 +38,7 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
     initialSelection
   );
 
+  // Set the initial manager selection if provided
   useEffect(() => {
     if (initialSelection !== null && employees.length > 0) {
       const matchingEmployee = employees.find(
@@ -44,6 +52,7 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
     }
   }, [employees, initialSelection, currentEmployeeId]);
 
+  // Function to get all subordinates of the current employee to avoid circular reporting
   const getSubordinates = (
     employeeId: string,
     allEmployees: Employee[]
@@ -67,6 +76,7 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
     return subordinates;
   };
 
+  // Filter out the current employee and their subordinates from the available manager options
   const filteredEmployees = useMemo(() => {
     if (!currentEmployeeId) {
       console.warn("No currentEmployeeId provided. Returning all employees.");
@@ -82,22 +92,26 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
     return filtered;
   }, [employees, currentEmployeeId]);
 
+  // Handle manager selection change and pass the role and ID to the callback
   const handleSelect = (value: React.Key) => {
     const selectedValue = value.toString();
     const [role, id] = selectedValue.split("-");
     setSelectedManagerRole(role);
-    onSelectionChange(role, id); // Updated to pass both role and id
+    onSelectionChange(role, id); // Pass both role and id to parent component
   };
 
+  // Generate Gravatar URL based on the employee's email
   const getGravatarUrl = (email: string) => {
     const hash = md5(email.toLowerCase().trim());
     return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
   };
 
+  // Find the selected employee from the filtered list
   const selectedEmployee = filteredEmployees.find(
     (emp) => emp.role === selectedManagerRole
   );
 
+  // Render the selected manager's name and avatar
   const renderSelectedValue = () => {
     if (!selectedEmployee) return label;
     return (
@@ -180,7 +194,7 @@ const ReportingLineManager: React.FC<ReportingLineManagerProps> = ({
             : new Set()
         }
         onSelectionChange={(keys) => handleSelect(Array.from(keys)[0])}
-        renderValue={renderSelectedValue}
+        renderValue={renderSelectedValue} // Display selected manager's name and avatar
       >
         {(employee) => (
           <SelectItem
