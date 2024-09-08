@@ -14,7 +14,7 @@
 "use client"; // Marks this component as a client-side rendered component
 
 import React, { useState, useEffect } from "react"; // React hooks for managing component state and lifecycle
-import { Card, CardBody, Image } from "@nextui-org/react"; // NextUI components for building the UI
+import { Card, CardBody } from "@nextui-org/react"; // NextUI components for building the UI
 import dynamic from "next/dynamic"; // Dynamic imports for performance optimization
 
 // Dynamically load the Spinner component (displays loading animation) - only loaded on client-side

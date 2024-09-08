@@ -6,10 +6,12 @@ export function ThemeToggle() {
 
   return (
     <Button
+      className="dark:bg-gray-900 bg-gray-200"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="fixed top-4 right-4"
     >
       {theme === "dark" ? "Switch to Light" : "Switch to Dark"}
     </Button>
   );
 }
+
+export default ThemeToggle;

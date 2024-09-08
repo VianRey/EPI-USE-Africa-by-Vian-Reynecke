@@ -14,6 +14,11 @@ import {
   NavbarMenu,
   Link,
 } from "@nextui-org/react";
+import dynamic from "next/dynamic"; // Dynamically imports components to optimize performance by splitting the code
+
+const ThemeToggle = dynamic(() => import("../components/toggleTheme"), {
+  ssr: false,
+});
 
 const CustomNavbar = () => {
   const menuItems = [
@@ -26,7 +31,7 @@ const CustomNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  const { theme, resolvedTheme } = useTheme();
+  const { theme, resolvedTheme } = useTheme(); // Removed setTheme since ThemeToggle will handle it
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -34,7 +39,11 @@ const CustomNavbar = () => {
   }, []);
 
   const handleNavigation = (path: string) => {
-    router.push(path);
+    if (path === "toggleTheme") {
+      // If ThemeToggle is clicked, we don't navigate but toggle the theme
+      return;
+    }
+    router.push(path); // Normal navigation for other menu items
   };
 
   const renderLogo = (width: number, height: number) => {
@@ -82,7 +91,7 @@ const CustomNavbar = () => {
             {renderLogo(128, 64)}
           </NavbarBrand>
 
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center">
             {menuItems.map((item, index) => (
               <NavbarItem key={`${item.name}-${index}`}>
                 <Link
@@ -96,9 +105,13 @@ const CustomNavbar = () => {
                   onClick={() => handleNavigation(item.path)}
                 >
                   {item.name}
-                </Link>
+                </Link>{" "}
               </NavbarItem>
             ))}
+            <NavbarItem className="flex items-center">
+              <div className="text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200"></div>
+              <ThemeToggle />
+            </NavbarItem>
           </div>
         </NavbarContent>
 
@@ -120,10 +133,14 @@ const CustomNavbar = () => {
               </Link>
             </NavbarMenuItem>
           ))}
+          <NavbarMenuItem>
+            <div className="w-full text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-gray-200">
+              <ThemeToggle />
+            </div>
+          </NavbarMenuItem>
         </NavbarMenu>
       </Navbar>
     </>
   );
 };
-
 export default CustomNavbar;
