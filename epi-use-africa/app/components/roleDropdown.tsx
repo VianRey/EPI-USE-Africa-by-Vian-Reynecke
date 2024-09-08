@@ -1,3 +1,9 @@
+/**
+ * The `RoleDropdown` component is a dropdown selector that allows users to choose a role from a list of predefined roles.
+ * It accepts a list of roles, handles the selected role through the `onChange` callback, and displays an error message if provided.
+ * This component is styled for both light and dark modes using NextUI's `Select` component.
+ */
+
 import React from "react";
 import { Select, SelectItem } from "@nextui-org/react";
 
@@ -8,9 +14,9 @@ interface Role {
 interface RoleDropdownProps {
   label: string;
   placeholder: string;
-  value: string;
-  onChange: (role: string) => void;
-  roles: Role[];
+  value: string; // The currently selected role
+  onChange: (role: string) => void; // Callback function to handle role selection changes
+  roles: Role[]; // Array of roles to display in the dropdown
   errorMessage?: string;
   className?: string;
 }
@@ -24,6 +30,7 @@ const RoleDropdown: React.FC<RoleDropdownProps> = ({
   errorMessage,
   className,
 }) => {
+  // Function to handle selection changes, calls the onChange prop with the selected role
   const handleSelectionChange = (keys: any) => {
     const selectedValue = Array.from(keys)[0] as string;
     onChange(selectedValue);
