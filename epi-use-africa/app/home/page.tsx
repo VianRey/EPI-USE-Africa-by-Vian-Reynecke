@@ -743,7 +743,6 @@ export default function home() {
     );
   };
 
-  // Main return block to render the page
   return (
     <>
       <CustomNavbar />
@@ -762,19 +761,19 @@ export default function home() {
             >
               <Tab key="create" title="Create">
                 <CreateSection
-                  roles={roles} // Pass roles to the create section
-                  employees={employees} // Pass employees to the create section
-                  onEmployeeCreated={addEmployee} // Function to add a new employee
+                  roles={roles}
+                  employees={employees}
+                  onEmployeeCreated={addEmployee}
                 />
               </Tab>
               <Tab key="Manage" title="Manage">
-                <ManageSection /> // Render the management section
+                <ManageSection />
               </Tab>
             </Tabs>
           </CardBody>
         </Card>
       </div>
-      <Toaster /> // Render toast notifications
+      <Toaster />
     </>
   );
 }
