@@ -45,9 +45,10 @@ This cloud-hosted application efficiently manages employee hierarchies, offering
 ## Getting Started
 
 1. Clone the repository
-2. Install dependencies: `npm install`
-3. Set up environment variables
-4. Run development server: `npm run dev`
+2. Navigate to the folder named "epi-use-africa"
+3. Install dependencies in that folder: `npm install`
+4. Set up environment variables
+5. Run development server: `npm run dev`
 
 ## Deployment
 
